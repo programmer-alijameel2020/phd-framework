@@ -4,8 +4,8 @@ from keras.models import Sequential
 from keras.layers import Dense, Flatten, Dropout, Conv1D, BatchNormalization, MaxPooling1D
 import matplotlib.pyplot as plt
 from keras.callbacks import CSVLogger
-from EvaluationMetric import evaluationMetric
-from preprocessor import preprocessor
+from Framework.EvaluationMetric import evaluationMetric
+from Framework.Preprocessor import preprocessor
 import seaborn as sns
 
 palette = sns.color_palette("rocket_r")
