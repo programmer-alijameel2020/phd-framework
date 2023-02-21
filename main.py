@@ -4,10 +4,9 @@
 # A programmatic implementation for the PHD project: A NeuroEvolution Network for Anomaly Detection in Computer Network
 # The system programming is distributed over multiple classes where each class provides a particular service
 # Copyrights: Ali Jameel Hashim
-from Framework.NeuroEvolutionCNN import GeneticAlgorithm
+from Framework.NeuroEvolutionCNN import EvolutionaryAlgorithm
 
 if __name__ == '__main__':
-
     """
     # SELF ORGANIZED MAP
     data_1 = np.random.normal(loc=.25, scale=0.5, size=(500, 100))
@@ -32,10 +31,7 @@ if __name__ == '__main__':
                           filename='storage/images/distance_map.png')  # plot the distance map after training
 
 
-    # initialize the genetic algorithm parameters
-    population_size = 5
-    mutation_rate = 0.05
-    NO_generations = 2
+    
    
     
     # Running the autoEncoder with configurations
@@ -55,8 +51,17 @@ if __name__ == '__main__':
     # Use the genetic neural network (use genetic algorithm for convolutional neural network)
     # ClassName(population size, mutation rate, generations)
 
-    dataset_path = 'storage/dataset/02-15-2018.csv'
+    dataset_path = 'storage/dataset/02-14-2018.csv'
 
-    GA = GeneticAlgorithm(population_size=1, mutation_rate=0.05, generations=2, dataset_path=dataset_path)
+    # Model iteration
+    model_iteration = 2
+
+    # initialize the evolutionary algorithm parameters
+    population_size = 2
+    mutation_rate = 0.05
+    NO_generations = 2
+
+    GA = EvolutionaryAlgorithm(model_iteration=model_iteration, population_size=population_size, mutation_rate=mutation_rate,
+                          generations=NO_generations, dataset_path=dataset_path)
     GA.create_population()
     GA.run_evolution()

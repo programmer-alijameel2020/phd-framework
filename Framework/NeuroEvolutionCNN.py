@@ -12,7 +12,7 @@ palette = sns.color_palette("rocket_r")
 
 
 class Network:
-    def __init__(self, dataset):
+    def __init__(self, dataset, model_iteration):
         # Initialize the dataset info
         # Perform preprocessor to extract train and testing
         PreProcessorClass = preprocessor()
@@ -55,6 +55,7 @@ class Network:
         self.precision_history = []
         self.rec_history = []
         self.loss_history = []
+        self.model_iteration = model_iteration
 
     def return_acc_history(self):
         return self.acc_history
@@ -67,7 +68,7 @@ class Network:
 
     def train(self):
         csv_logger = CSVLogger('metrics.csv', append=True)
-        self.model.fit(self.X_train, self.y_train, batch_size=32, epochs=2, verbose=1,
+        self.model.fit(self.X_train, self.y_train, batch_size=32, epochs=self.model_iteration, verbose=1,
                        shuffle=True, callbacks=[csv_logger])  # , validation_data =(X_test, y_test)
 
     def test(self):
@@ -95,8 +96,8 @@ class Network:
         self.model.summary()
 
 
-class GeneticAlgorithm:
-    def __init__(self, population_size, mutation_rate, dataset_path, generations=50):
+class EvolutionaryAlgorithm:
+    def __init__(self, model_iteration, population_size, mutation_rate, dataset_path, generations=50):
         self.norm_acc = None
         self.population_size = population_size
         self.mutation_rate = mutation_rate
@@ -106,9 +107,10 @@ class GeneticAlgorithm:
         self.acces = []
         self.norm_acces = []
         self.dataset = dataset_path
+        self.model_iteration = model_iteration
 
     def create_population(self):
-        self.population = [Network(dataset=self.dataset) for i in range(self.population_size)]
+        self.population = [Network(dataset=self.dataset, model_iteration = self.model_iteration) for i in range(self.population_size)]
 
     def train_generation(self):
         for member in self.population:
