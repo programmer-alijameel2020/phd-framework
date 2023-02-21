@@ -4,7 +4,8 @@
 # A programmatic implementation for the PHD project: A NeuroEvolution Network for Anomaly Detection in Computer Network
 # The system programming is distributed over multiple classes where each class provides a particular service
 # Copyrights: Ali Jameel Hashim
-from Framework.NeuroEvolutionCNN import EvolutionaryAlgorithm
+from Framework.NeuroEvolutionCNN import EvolutionaryCNN
+from Framework.NeuroEvolutionAE import run_autoEncoder
 
 if __name__ == '__main__':
     """
@@ -33,21 +34,6 @@ if __name__ == '__main__':
 
     
    
-    
-    # Running the autoEncoder with configurations
-    dataset = 'storage/dataset/output.txt'
-    # the epochs are increased according to the increasing factor
-    results_iteration = 3
-    results_increase_factor = 5
-    epochs = 50
-    batch_size = 25
-    stopping_patience = 3
-    for iteration in range(results_iteration):
-        epochs = epochs * results_increase_factor
-        run_autoEncoder(dataset, epochs, batch_size, stopping_patience)
-    
-    """
-
     # Use the genetic neural network (use genetic algorithm for convolutional neural network)
     # ClassName(population size, mutation rate, generations)
 
@@ -61,7 +47,24 @@ if __name__ == '__main__':
     mutation_rate = 0.05
     NO_generations = 2
 
-    GA = EvolutionaryAlgorithm(model_iteration=model_iteration, population_size=population_size, mutation_rate=mutation_rate,
+    GA = EvolutionaryCNN(model_iteration=model_iteration, population_size=population_size, mutation_rate=mutation_rate,
                           generations=NO_generations, dataset_path=dataset_path)
     GA.create_population()
     GA.run_evolution()
+
+
+
+    """
+
+    # Running the autoEncoder with configurations
+    dataset = 'storage/dataset/output.txt'
+    # the epochs are increased according to the increasing factor
+    results_iteration = 1
+    results_increase_factor = 5
+    epochs = 50
+    batch_size = 25
+    stopping_patience = 3
+    for iteration in range(results_iteration):
+        epochs = epochs * results_increase_factor
+        run_autoEncoder(dataset, epochs, batch_size, stopping_patience)
+

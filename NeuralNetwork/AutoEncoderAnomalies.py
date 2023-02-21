@@ -1,6 +1,5 @@
 # Importing Libraries
 
-import tensorflow as tf
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -8,7 +7,7 @@ from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from keras.callbacks import EarlyStopping
-from Framework.AutoEncoder import Autoencoder
+from NeuralNetwork.AutoEncoder import Autoencoder
 
 
 def run_autoEncoder(dataset, epochs, batch_size, stopping_patience=2):

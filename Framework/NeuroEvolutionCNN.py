@@ -1,3 +1,4 @@
+# NOTE: All the neuroEvolution CNN programming are placed in the same class
 import keras
 import numpy as np
 from keras.models import Sequential
@@ -96,7 +97,7 @@ class Network:
         self.model.summary()
 
 
-class EvolutionaryAlgorithm:
+class EvolutionaryCNN:
     def __init__(self, model_iteration, population_size, mutation_rate, dataset_path, generations=50):
         self.norm_acc = None
         self.population_size = population_size
