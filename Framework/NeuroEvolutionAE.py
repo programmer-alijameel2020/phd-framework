@@ -15,7 +15,7 @@ palette = sns.color_palette("rocket_r")
 
 
 class Autoencoder(Model):
-    def __init__(self, dataset, epochs):
+    def __init__(self):
         super(Autoencoder, self).__init__()
         """
         Build the model structure. The model structure consists of encoder model and decoder model where the 
@@ -26,6 +26,7 @@ class Autoencoder(Model):
 
         encoder_model = Sequential()
         encoder_model.add(Dense(140, activation='sigmoid'))
+        encoder_model.add(Dense(64, activation='relu'))
         encoder_model.add(Dense(32, activation='relu'))
         encoder_model.add(Dense(16, activation='relu'))
         encoder_model.add(Dense(8, activation='relu'))
@@ -35,10 +36,11 @@ class Autoencoder(Model):
         self.encoder = encoder_model
 
         decoder_model = Sequential()
-        decoder_model.add(Dense(8, activation='sigmoid'))
+        decoder_model.add(Dense(8, activation='relu'))
         decoder_model.add(Dense(16, activation='relu'))
         decoder_model.add(Dense(32, activation='relu'))
         decoder_model.add(Dense(64, activation='relu'))
+        decoder_model.add(Dense(140, activation='sigmoid'))
         decoder_model.compile(loss="categorical_crossentropy", optimizer="adam",
                               metrics=['accuracy', evaluationClass.f1_m, evaluationClass.precision_m,
                                        evaluationClass.recall_m])
@@ -50,9 +52,13 @@ class Autoencoder(Model):
         self.precision_history = []
         self.rec_history = []
         self.loss_history = []
-        self.epochs = epochs
-        self.dataset = dataset
-    def autoEncoderProcessor(self, dataset):
+
+    def call(self, x):
+        encoded = self.encoder(x)
+        decoded = self.decoder(encoded)
+        return decoded
+
+    def run_autoEncoder(self, dataset, epochs, batch_size, stopping_patience, generation):
         df = pd.read_csv(dataset, sep='  ', header=None, engine='python')
         # df = pd.read_csv('storage/dataset/test.txt', sep='  ', header=None, engine='python')
         print(df.head())
@@ -81,12 +87,9 @@ class Autoencoder(Model):
         normal_test_data = pd.DataFrame(test_data_scaled).add_prefix('c').query('c0 == 0').values[:, 1:]
         anomaly_test_data = pd.DataFrame(test_data_scaled).add_prefix('c').query('c0 > 0').values[:, 1:]
 
-        return normal_train_data, anomaly_train_data, normal_test_data, anomaly_test_data, train_data_scaled
-
-    def run_autoEncoder(self, epochs, batch_size, stopping_patience):
-        normal_train_data, anomaly_train_data, normal_test_data, anomaly_test_data, train_data_scaled = self.autoEncoderProcessor(self.dataset)
         # Instantiating the Autoencoder
         model = Autoencoder()
+
         # creating an early_stopping
         early_stopping = EarlyStopping(monitor='val_loss',
                                        patience=stopping_patience,
@@ -158,7 +161,7 @@ class Autoencoder(Model):
         plt.axvline(threshold, color='r', linewidth=3, linestyle='dashed',
                     label='Threshold value: {:0.3f}'.format(threshold))
         plt.legend(loc='upper right')
-        plt.title("Abnormality detection report for (" + str(epochs) + ") epochs")
+        plt.title("Abnormality detection report for (" + str(epochs) + ") epochs with generation number: (" + str(generation) + ")")
         plt.show()
 
         # Number of correct predictions for Normal test data
@@ -172,7 +175,7 @@ class Autoencoder(Model):
 
 
 class EvolutionaryAutoEncoder:
-    def __init__(self, model_iteration, population_size, mutation_rate, dataset_path, dataset, epochs, batch_size,
+    def __init__(self, model_iteration, population_size, mutation_rate, dataset, epochs, batch_size,
                  stopping_patience=2, generations=50):
         self.norm_acc = None
         self.population_size = population_size
@@ -182,7 +185,6 @@ class EvolutionaryAutoEncoder:
         self.children_population_weights = []
         self.acces = []
         self.norm_acces = []
-        self.dataset = dataset_path
         self.model_iteration = model_iteration
         self.dataset = dataset
         self.epochs = epochs
@@ -193,20 +195,9 @@ class EvolutionaryAutoEncoder:
         self.population = [Autoencoder() for i in
                            range(self.population_size)]
 
-    def train_generation(self):
+    def runEncoderEvolution(self, generation):
         for member in self.population:
-            member.run_autoEncoder(self.dataset, self.epochs, self.batch_size, self.stopping_patience)
-
-    def predict(self):
-        for member in self.population:
-            loss, acc, f1_score, precision, recall = member.model.evaluate(self.X_test, self.y_test)
-            self.acc_history.append(acc)
-            self.f1_history.append(f1_score)
-            self.precision_history.append(precision)
-            self.rec_history.append(recall)
-            self.loss_history.append(loss)
-            self.acc.append(acc)
-
+            member.run_autoEncoder(self.dataset, self.epochs, self.batch_size, self.stopping_patience, generation)
 
     def normalize(self):
         sum_ = sum(self.acc)
@@ -262,8 +253,7 @@ class EvolutionaryAutoEncoder:
     def run_evolution(self):
         for episode in range(self.generations):
             self.clear_losses()
-            self.train_generation()
-            self.predict()
+            self.runEncoderEvolution(episode)
             if episode != self.generations - 1:
                 self.normalize()
                 self.reproduction()

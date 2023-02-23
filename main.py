@@ -59,7 +59,7 @@ if __name__ == '__main__':
     # the epochs are increased according to the increasing factor
     results_iteration = 1
     results_increase_factor = 5
-    epochs = 50
+    epochs = 5
     batch_size = 25
     stopping_patience = 3
 
@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
     EV_AE = EvolutionaryAutoEncoder(model_iteration=epochs
                                     , population_size=population_size, mutation_rate=mutation_rate,
-                                    generations=NO_generations, dataset_path=dataset, dataset=dataset, epochs=epochs,
+                                    generations=NO_generations, dataset=dataset, epochs=epochs,
                                     batch_size=batch_size, stopping_patience=stopping_patience)
     EV_AE.create_population()
     EV_AE.run_evolution()
