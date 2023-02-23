@@ -174,6 +174,7 @@ class Autoencoder(Model):
         print(preds_a.shape)
 
 
+
 class EvolutionaryAutoEncoder:
     def __init__(self, model_iteration, population_size, mutation_rate, dataset, epochs, batch_size,
                  stopping_patience=2, generations=50):
