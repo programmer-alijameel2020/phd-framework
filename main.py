@@ -5,7 +5,7 @@
 # The system programming is distributed over multiple classes where each class provides a particular service
 # Copyrights: Ali Jameel Hashim
 from Framework.NeuroEvolutionCNN import EvolutionaryCNN
-from Framework.NeuroEvolutionAE import run_autoEncoder
+from Framework.NeuroEvolutionAE import EvolutionaryAutoEncoder
 
 if __name__ == '__main__':
     """
@@ -52,8 +52,6 @@ if __name__ == '__main__':
     GA.create_population()
     GA.run_evolution()
 
-
-
     """
 
     # Running the autoEncoder with configurations
@@ -64,7 +62,15 @@ if __name__ == '__main__':
     epochs = 50
     batch_size = 25
     stopping_patience = 3
-    for iteration in range(results_iteration):
-        epochs = epochs * results_increase_factor
-        run_autoEncoder(dataset, epochs, batch_size, stopping_patience)
 
+    # initialize the evolutionary algorithm parameters
+    population_size = 2
+    mutation_rate = 0.05
+    NO_generations = 2
+
+    EV_AE = EvolutionaryAutoEncoder(model_iteration=epochs
+                                    , population_size=population_size, mutation_rate=mutation_rate,
+                                    generations=NO_generations, dataset_path=dataset, dataset=dataset, epochs=epochs,
+                                    batch_size=batch_size, stopping_patience=stopping_patience)
+    EV_AE.create_population()
+    EV_AE.run_evolution()
