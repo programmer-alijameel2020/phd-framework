@@ -51,7 +51,10 @@ if __name__ == '__main__':
                           generations=NO_generations, dataset_path=dataset_path)
     GA.create_population()
     GA.run_evolution()
-
+    
+    """
+    """
+     
     """
 
     # Running the autoEncoder with configurations

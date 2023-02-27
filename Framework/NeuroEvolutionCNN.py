@@ -44,7 +44,6 @@ class Network:
         model.add(MaxPooling1D(pool_size=(3), strides=2, padding='same'))
         model.add(Flatten())
         model.add(Dense(64, activation='relu'))
-        model.add(Dense(64, activation='relu'))
         model.add(Dense(3, activation='softmax'))
 
         evaluationClass = evaluationMetric()

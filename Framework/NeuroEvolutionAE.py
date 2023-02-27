@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from keras.utils import plot_model
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
@@ -99,6 +100,8 @@ class Autoencoder(Model):
         model.compile(optimizer='adam',
                       loss='mae')
 
+
+
         # Training the model
         history = model.fit(normal_train_data, normal_train_data,
                             epochs=epochs,
@@ -123,12 +126,6 @@ class Autoencoder(Model):
 
         print("Anomaly training data", anomaly_train_data[0], 'b')
         print("Decoder out: ", decoder_out_a[0], 'r')
-
-        # Plotting the normal and anomaly losses with the threshold
-        plt.plot(encoder_out_a[0], label="encoder out")
-        plt.plot(decoder_out_a[0], label="decoder out")
-        plt.title("Abnormality detection report for (" + str(epochs) + ") epochs")
-        plt.show()
 
         # reconstruction loss for normal test data
         reconstructions = model.predict(normal_test_data)
@@ -161,7 +158,8 @@ class Autoencoder(Model):
         plt.axvline(threshold, color='r', linewidth=3, linestyle='dashed',
                     label='Threshold value: {:0.3f}'.format(threshold))
         plt.legend(loc='upper right')
-        plt.title("Abnormality detection report for (" + str(epochs) + ") epochs with generation number: (" + str(generation) + ")")
+        plt.title("Abnormality detection report for (" + str(epochs) + ") epochs with generation number: (" + str(
+            generation) + ")")
         plt.show()
 
         # Number of correct predictions for Normal test data
@@ -173,6 +171,15 @@ class Autoencoder(Model):
         print("Number of correct predictions for anomaly data: ", tf.math.count_nonzero(preds_a))
         print(preds_a.shape)
 
+        """
+              # Plotting the normal and anomaly losses with the threshold
+              plt.plot(encoder_out_a[0], label="encoder out")
+              plt.plot(decoder_out_a[0], label="decoder out")
+              plt.title("Abnormality detection report for (" + str(epochs) + ") epochs")
+              plt.show()
+        """
+
+        
 
 
 class EvolutionaryAutoEncoder:
@@ -205,10 +212,6 @@ class EvolutionaryAutoEncoder:
         self.norm_acc = [i / sum_ for i in self.acc]
         print("\nNormalization sum: ", sum(self.norm_acc))
         # assert sum(self.norm_acc) == 1
-
-    def show_weights(self):
-        for i in parent_weights:
-            print(i)
 
     def clear_losses(self):
         self.norm_acc = []
