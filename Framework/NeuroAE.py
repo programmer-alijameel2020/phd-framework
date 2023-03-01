@@ -1,20 +1,16 @@
-import keras
 import pandas as pd
 import numpy as np
-from keras.callbacks_v1 import TensorBoard
+from keras.utils import plot_model
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from keras.callbacks import EarlyStopping, CSVLogger
 import seaborn as sns
+from keras.models import Sequential, Model
+from keras.layers import Dense
+
 from Framework.EvaluationMetric import evaluationMetric
-
-from tensorflow import keras
-from keras import Model, Sequential, layers
-from keras.layers import Dense, Conv1D, BatchNormalization, MaxPooling1D, Flatten
-
-from Framework.Preprocessor import preprocessor
 
 palette = sns.color_palette("rocket_r")
 
@@ -23,31 +19,48 @@ class Autoencoder(Model):
     def __init__(self):
         super(Autoencoder, self).__init__()
         """
-            Build the model structure. The model structure consists of encoder model and decoder model where the 
-            encoder moder responsible for encoding the signal into simplified representation and the decoder moder 
-            responsible for the reconstruction of the decoder signal 
+        Build the model structure. The model structure consists of encoder model and decoder model where the 
+        encoder moder responsible for encoding the signal into simplified representation and the decoder moder 
+        responsible for the reconstruction of the decoder signal 
         """
-        enc_model = Sequential()
-        # encoder
-        enc_model.add(Conv1D(filters=64, kernel_size=6, activation='relu',
-                         padding='same', input_shape=(72, 1)))
+        evaluationClass = evaluationMetric()
 
-        enc_model.add(Dense(140, activation='sigmoid'))
-        enc_model.add(Dense(64, activation='relu'))
-        enc_model.add(Dense(32, activation='relu'))
-        enc_model.add(Dense(16, activation='relu'))
-        enc_model.add(Dense(8, activation='relu'))
-        self.encoder = enc_model
-        # decoder
-        dec_model = Sequential()
-        dec_model.add(Dense(8, activation='relu'))
-        dec_model.add(Dense(16, activation='relu'))
-        dec_model.add(Dense(32, activation='relu'))
-        dec_model.add(Dense(64, activation='relu'))
-        dec_model.add(Dense(140, activation='sigmoid'))
-        dec_model.add(Conv1D(filters=64, kernel_size=6, activation='relu',
-                         padding='same', input_shape=(72, 1)))
-        self.decoder = dec_model
+        encoder_model = Sequential()
+        encoder_model.add(Dense(140, activation='sigmoid'))
+        encoder_model.add(Dense(64, activation='relu'))
+        encoder_model.add(Dense(32, activation='relu'))
+        encoder_model.add(Dense(16, activation='relu'))
+        encoder_model.add(Dense(8, activation='relu'))
+        encoder_model.compile(loss="categorical_crossentropy", optimizer="adam",
+                              metrics=['accuracy', evaluationClass.f1_m, evaluationClass.precision_m,
+                                       evaluationClass.recall_m])
+        self.encoder = encoder_model
+
+        decoder_model = Sequential()
+        decoder_model.add(Dense(8, activation='relu'))
+        decoder_model.add(Dense(16, activation='relu'))
+        decoder_model.add(Dense(32, activation='relu'))
+        decoder_model.add(Dense(64, activation='relu'))
+        decoder_model.add(Dense(140, activation='sigmoid'))
+        decoder_model.compile(loss="categorical_crossentropy", optimizer="adam",
+                              metrics=['accuracy', evaluationClass.f1_m, evaluationClass.precision_m,
+                                       evaluationClass.recall_m])
+        self.decoder = decoder_model
+
+        model = Sequential()
+        model.add(Dense(140, activation='sigmoid', input_shape=(141,1)))
+        model.add(Dense(64, activation='relu'))
+        model.add(Dense(32, activation='relu'))
+        model.add(Dense(16, activation='relu'))
+        model.add(Dense(8, activation='relu'))
+
+        model.add(Dense(8, activation='relu'))
+        model.add(Dense(16, activation='relu'))
+        model.add(Dense(32, activation='relu'))
+        model.add(Dense(64, activation='relu'))
+        model.add(Dense(140, activation='sigmoid', input_shape=(141,1)))
+        self.model = model
+
         # Performance metrics
         self.acc_history = []
         self.f1_history = []
@@ -64,44 +77,152 @@ class Autoencoder(Model):
         return self.acc_history
 
     def get_layer_weight(self, i):
-        return self.encoder.layers[i].get_weights()
+        return self.model.layers[i].get_weights()
 
     def set_layer_weight(self, i, weight):
-        self.encoder.layers[i].set_weights(weight)
+        self.model.layers[i].set_weights(weight)
 
     def load_layer_weights(self, weights):
-        self.encoder.set_weights(weights)
+        self.model.set_weights(weights)
 
     def give_weights(self):
-        return self.encoder.get_weights()
+        return self.model.get_weights()
 
     def weight_len(self):
         i = 0
-        for j in self.encoder.layers:
+        for j in self.model.layers:
             i += 1
         return i
 
     def architecture(self):
-        self.encoder.summary()
+        self.model.summary()
+
+    def test(self):
+        loss, acc, f1_score, precision, recall = self.model.evaluate(self.X_test, self.y_test)
+        self.acc_history.append(acc)
+        self.f1_history.append(f1_score)
+        self.precision_history.append(precision)
+        self.rec_history.append(recall)
+        self.loss_history.append(loss)
+        return acc
 
     def run_autoEncoder(self, dataset, epochs, batch_size, stopping_patience, generation):
-        # Initialize the dataset info
-        # Perform preprocessor to extract train and testing
-        PreProcessorClass = preprocessor()
-        X_train, y_train, X_test, y_test = PreProcessorClass.data_preprocessor(dataset)
-        print("shaped data:", X_train.shape)
-        autoencoder = Autoencoder()
-        evaluationClass = evaluationMetric()
-        autoencoder.compile(loss="binary_crossentropy", optimizer="adam")
+        df = pd.read_csv(dataset, sep='  ', header=None, engine='python')
+        # df = pd.read_csv('storage/dataset/test.txt', sep='  ', header=None, engine='python')
+        print(df.head())
+        df.columns
+        print(df.describe())
+        # splitting into train test data
+        train_data, test_data, train_labels, test_labels = train_test_split(df.values, df.values[:, 0:1], test_size=0.2,
+                                                                            random_state=111)
+        # Initializing a MinMax Scaler
+        scaler = MinMaxScaler()
 
+        # Fitting the train data to the scaler
+        data_scaled = scaler.fit(train_data)
 
-        autoencoder.fit(X_train, X_train,
-                        epochs=epochs,
-                        batch_size=batch_size,
-                        shuffle=True,
-                        validation_data=(X_test, X_test),
-                        callbacks=[TensorBoard(log_dir='/autoencoder')])
+        # Scaling dataset according to weights of train data
+        train_data_scaled = data_scaled.transform(train_data)
+        test_data_scaled = data_scaled.transform(test_data)
+        train_data.shape
+        # Making pandas dataframe for the normal and anomaly train data points
+        normal_train_data = pd.DataFrame(train_data_scaled).add_prefix('c').query('c0 == 0').values[:, 1:]
+        anomaly_train_data = pd.DataFrame(train_data_scaled).add_prefix('c').query('c0 > 0').values[:, 1:]
 
+        print("Anomaly training data: ", anomaly_train_data)
+
+        # Making pandas dataframe for the normal and anomaly test data points
+        normal_test_data = pd.DataFrame(test_data_scaled).add_prefix('c').query('c0 == 0').values[:, 1:]
+        anomaly_test_data = pd.DataFrame(test_data_scaled).add_prefix('c').query('c0 > 0').values[:, 1:]
+
+        # Instantiating the Autoencoder
+        model = Autoencoder()
+
+        # creating an early_stopping
+        early_stopping = EarlyStopping(monitor='val_loss',
+                                       patience=stopping_patience,
+                                       mode='min')
+
+        # Compiling the model
+        model.compile(optimizer='adam',
+                      loss='mae')
+
+        # Training the model
+        history = model.fit(normal_train_data, normal_train_data,
+                            epochs=epochs,
+                            batch_size=batch_size,
+                            validation_data=(train_data_scaled[:, 1:], train_data_scaled[:, 1:]),
+                            shuffle=True,
+                            callbacks=[early_stopping])
+
+        # predictions for normal test data points
+        encoder_out = model.encoder(normal_test_data).numpy()
+        decoder_out = model.decoder(encoder_out).numpy()
+
+        print("Test data:", encoder_out)
+        print("Predictions:", decoder_out)
+        print(decoder_out.shape)
+        print(normal_test_data[0], 'b')
+        print(decoder_out[0], 'r')
+
+        # predictions for anomaly test data points
+        encoder_out_a = model.encoder(anomaly_test_data).numpy()
+        decoder_out_a = model.decoder(encoder_out_a).numpy()
+
+        print("Anomaly training data", anomaly_train_data[0], 'b')
+        print("Decoder out: ", decoder_out_a[0], 'r')
+
+        # reconstruction loss for normal test data
+        reconstructions = model.predict(normal_test_data)
+        train_loss = tf.keras.losses.mae(reconstructions, normal_test_data)
+
+        # Plotting histogram for recontruction loss for normal test data
+        print("Training loss", train_loss)
+        print("Mean: ", np.mean(train_loss))
+        print("Standard deviation: ", np.std(train_loss))
+
+        # reconstruction loss for anomaly test data
+        reconstructions_a = model.predict(anomaly_test_data)
+        train_loss_a = tf.keras.losses.mae(reconstructions_a, anomaly_test_data)
+
+        # Plotting histogram for reconstruction loss for anomaly test data
+        print("Reconstructed training loss: ", train_loss_a)
+        print("Mean: ", np.mean(train_loss_a))
+        print("Standard deviation: ", np.std(train_loss_a))
+
+        # setting threshold
+        threshold = np.mean(train_loss) + 2 * np.std(train_loss)
+        print("Threshold: ", threshold)
+
+        print("normal_test_data: ", normal_test_data)
+        print("Predictions: ", reconstructions)
+
+        # Plotting the normal and anomaly losses with the threshold
+        plt.hist(train_loss, bins=50, density=True, label="Normal (train data loss)", alpha=.6, color="green")
+        plt.hist(train_loss_a, bins=50, density=True, label="Anomaly (test data loss)", alpha=.6, color="red")
+        plt.axvline(threshold, color='r', linewidth=3, linestyle='dashed',
+                    label='Threshold value: {:0.3f}'.format(threshold))
+        plt.legend(loc='upper right')
+        plt.title("Abnormality detection report for (" + str(epochs) + ") epochs with generation number: (" + str(
+            generation) + ")")
+        plt.show()
+
+        # Number of correct predictions for Normal test data
+        preds = tf.math.less(train_loss, threshold)
+
+        print("Number of correct predictions: ", tf.math.count_nonzero(preds))
+        # Number of correct predictions for Anomaly test data
+        preds_a = tf.math.greater(train_loss_a, threshold)
+        print("Number of correct predictions for anomaly data: ", tf.math.count_nonzero(preds_a))
+        print(preds_a.shape)
+
+        """
+              # Plotting the normal and anomaly losses with the threshold
+              plt.plot(encoder_out_a[0], label="encoder out")
+              plt.plot(decoder_out_a[0], label="decoder out")
+              plt.title("Abnormality detection report for (" + str(epochs) + ") epochs")
+              plt.show()
+        """
 
 
 class EvolutionaryAutoEncoder:
