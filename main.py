@@ -6,6 +6,7 @@
 # Copyrights: Ali Jameel Hashim
 from Framework.NeuroEvolutionCNN import EvolutionaryCNN
 from Framework.NeuroEvolutionAE import EvolutionaryAutoEncoder
+from Framework.NeuroAE import EvolutionaryAutoEncoder
 
 if __name__ == '__main__':
     """
