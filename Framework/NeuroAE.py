@@ -26,7 +26,7 @@ class Autoencoder(Model):
         evaluationClass = evaluationMetric()
 
         encoder_model = Sequential()
-        encoder_model.add(Dense(140, activation='sigmoid'))
+        encoder_model.add(Dense(140,  use_bias=True, activation='sigmoid', input_shape=(140,140)))
         encoder_model.add(Dense(64, activation='relu'))
         encoder_model.add(Dense(32, activation='relu'))
         encoder_model.add(Dense(16, activation='relu'))
@@ -41,7 +41,7 @@ class Autoencoder(Model):
         decoder_model.add(Dense(16, activation='relu'))
         decoder_model.add(Dense(32, activation='relu'))
         decoder_model.add(Dense(64, activation='relu'))
-        decoder_model.add(Dense(140, activation='sigmoid'))
+        decoder_model.add(Dense(140, activation='sigmoid', input_shape=(140,140)))
         decoder_model.compile(loss="categorical_crossentropy", optimizer="adam",
                               metrics=['accuracy', evaluationClass.f1_m, evaluationClass.precision_m,
                                        evaluationClass.recall_m])
@@ -77,28 +77,28 @@ class Autoencoder(Model):
         return self.acc_history
 
     def get_layer_weight(self, i):
-        return self.model.layers[i].get_weights()
+        return self.encoder.layers[i].get_weights()
 
     def set_layer_weight(self, i, weight):
-        self.model.layers[i].set_weights(weight)
+        self.encoder.layers[i].set_weights(weight)
 
     def load_layer_weights(self, weights):
-        self.model.set_weights(weights)
+        self.encoder.set_weights(weights)
 
     def give_weights(self):
-        return self.model.get_weights()
+        return self.encoder.get_weights()
 
     def weight_len(self):
         i = 0
-        for j in self.model.layers:
+        for j in self.encoder.layers:
             i += 1
         return i
 
     def architecture(self):
-        self.model.summary()
+        self.encoder.summary()
 
     def test(self):
-        loss, acc, f1_score, precision, recall = self.model.evaluate(self.X_test, self.y_test)
+        loss, acc, f1_score, precision, recall = self.encoder.evaluate(self.X_test, self.y_test)
         self.acc_history.append(acc)
         self.f1_history.append(f1_score)
         self.precision_history.append(precision)
@@ -146,7 +146,7 @@ class Autoencoder(Model):
         # Compiling the model
         model.compile(optimizer='adam',
                       loss='mae')
-        csv_logger = CSVLogger('metrics.csv', append=True)
+        csv_logger = CSVLogger('metrics_' + str(generation) + '.csv', append=True)
 
         # Training the model
         history = model.fit(normal_train_data, normal_train_data,
@@ -309,18 +309,22 @@ class EvolutionaryAutoEncoder:
             else:
                 pass
 
-        # plotting history:
-        for a in range(self.generations):
-            plt.plot(label='accuracy for gen: ' + str(a))
-            for member in self.population:
-                plt.plot(member.acc_history)
-        plt.xlabel("Generations")
-        plt.ylabel("Accuracy")
-        plt.show()
 
-        for a in range(self.generations):
-            for member in self.population:
-                plt.plot(member.loss_history)
-        plt.xlabel("Generations")
-        plt.ylabel("Loss")
-        plt.show()
+    """
+            # plotting history:
+            for a in range(self.generations):
+                plt.plot(label='accuracy for gen: ' + str(a))
+                for member in self.population:
+                    plt.plot(member.acc_history)
+            plt.xlabel("Generations")
+            plt.ylabel("Accuracy")
+            plt.show()
+
+            for a in range(self.generations):
+                for member in self.population:
+                    plt.plot(member.loss_history)
+            plt.xlabel("Generations")
+            plt.ylabel("Loss")
+            plt.show()
+    
+    """
