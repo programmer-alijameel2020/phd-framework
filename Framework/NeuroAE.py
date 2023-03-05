@@ -26,7 +26,7 @@ class Autoencoder(Model):
         evaluationClass = evaluationMetric()
 
         encoder_model = Sequential()
-        encoder_model.add(Dense(140,  use_bias=True, activation='sigmoid', input_shape=(140,140)))
+        encoder_model.add(Dense(140,  activation='sigmoid', input_shape=(140,140)))
         encoder_model.add(Dense(64, activation='relu'))
         encoder_model.add(Dense(32, activation='relu'))
         encoder_model.add(Dense(16, activation='relu'))
