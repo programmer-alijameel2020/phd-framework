@@ -166,3 +166,16 @@ class preprocessor:
             np.savetxt(f, fileArray, delimiter=' ', newline='\n', header='', footer='', comments='# ')
 
 
+
+    def create_unlabeled_feature(self, datasetPassed, featureName):
+        # Running the preprocessor to generate unsupervised data for a certain feature
+        dataset = datasetPassed
+        flowPackets = pd.read_csv(dataset, usecols=[featureName])
+        df_new = flowPackets[np.isfinite(flowPackets).all(1)]
+        df_new = df_new.astype('float32')
+        n = 19600
+        df_new = df_new.iloc[:n]
+        array_feature = df_new.to_numpy()
+        arrayPrinted = array_feature.reshape(140, 140)
+        print(arrayPrinted)
+        np.savetxt('storage/dataset/02-15-2018-FlowPkts.txt', arrayPrinted, delimiter=', ')

@@ -1,5 +1,7 @@
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+import numpy as np
+import pandas as pd
 
 # A programmatic implementation for the PHD project: A NeuroEvolution Network for Anomaly Detection in Computer Network
 # The system programming is distributed over multiple classes where each class provides a particular service
@@ -10,6 +12,20 @@ from Framework.NeuroAE import EvolutionaryAutoEncoder
 
 if __name__ == '__main__':
     """
+    # Running the autoEncoder with configurations
+    dataset = 'storage/dataset/02-15-2018.csv'
+    flowPackets = pd.read_csv(dataset, usecols=['Flow Pkts/s'])
+    df_new = flowPackets[np.isfinite(flowPackets).all(1)]
+    df_new = df_new.astype('float32')
+    n = 19600
+    df_new = df_new.iloc[:n]
+    array_feature = df_new.to_numpy()
+    arrayPrinted = array_feature.reshape(140, 140)
+    print(arrayPrinted)
+    np.savetxt('storage/dataset/02-15-2018-FlowPkts.txt', arrayPrinted, delimiter=' ')
+
+    
+    
     # SELF ORGANIZED MAP
     data_1 = np.random.normal(loc=.25, scale=0.5, size=(500, 100))
     data_2 = np.random.normal(loc=.25, scale=0.5, size=(500, 100))
@@ -55,11 +71,8 @@ if __name__ == '__main__':
     
     """
     """
-     
-    """
-
     # Running the autoEncoder with configurations
-    dataset = 'storage/dataset/output.txt'
+    dataset = 'storage/dataset/FlowByteDataset.txt'
     # the epochs are increased according to the increasing factor
     results_iteration = 1
     results_increase_factor = 5
@@ -78,3 +91,17 @@ if __name__ == '__main__':
                                     batch_size=batch_size, stopping_patience=stopping_patience)
     EV_AE.create_population()
     EV_AE.run_evolution()
+    
+    """
+
+    # Running the autoEncoder with configurations
+    dataset = 'storage/dataset/02-15-2018.csv'
+    flowPackets = pd.read_csv(dataset, usecols=['Flow Pkts/s'])
+    df_new = flowPackets[np.isfinite(flowPackets).all(1)]
+    df_new = df_new.astype('float16')
+    n = 19600
+    df_new = df_new.iloc[:n]
+    array_feature = df_new.to_numpy()
+    arrayPrinted = array_feature.reshape(140, 140)
+    print(arrayPrinted)
+    np.savetxt('storage/dataset/02-15-2018-FlowPkts.txt', arrayPrinted, delimiter=' ')

@@ -59,6 +59,10 @@ class Autoencoder(Model):
         model.add(Dense(32, activation='relu'))
         model.add(Dense(64, activation='relu'))
         model.add(Dense(140, activation='sigmoid', input_shape=(141,1)))
+
+        model.compile(loss="categorical_crossentropy", optimizer="adam",
+                              metrics=['accuracy', evaluationClass.f1_m, evaluationClass.precision_m,
+                                       evaluationClass.recall_m])
         self.model = model
 
         # Performance metrics
@@ -108,6 +112,7 @@ class Autoencoder(Model):
 
     def run_autoEncoder(self, dataset, epochs, batch_size, stopping_patience, generation):
         df = pd.read_csv(dataset, sep='  ', header=None, engine='python')
+        print(df.shape)
         # df = pd.read_csv('storage/dataset/test.txt', sep='  ', header=None, engine='python')
         # print(df.head())
         df.columns
