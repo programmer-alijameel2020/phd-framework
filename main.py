@@ -103,14 +103,14 @@ if __name__ == '__main__':
     # the epochs are increased according to the increasing factor
     results_iteration = 1
     results_increase_factor = 5
-    epochs = 5
+    epochs = 50
     batch_size = 25
     stopping_patience = 3
 
     # initialize the evolutionary algorithm parameters
     population_size = 2
     mutation_rate = 0.05
-    NO_generations = 2
+    NO_generations = 50
 
     EV_AE = EvolutionaryAutoEncoder(model_iteration=epochs
                                     , population_size=population_size, mutation_rate=mutation_rate,

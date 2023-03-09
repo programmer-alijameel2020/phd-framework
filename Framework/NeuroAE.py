@@ -1,3 +1,4 @@
+import matplotlib
 import pandas as pd
 import numpy as np
 from keras.utils import plot_model
@@ -129,7 +130,7 @@ class Autoencoder(Model):
                                        patience=stopping_patience,
                                        mode='min')
 
-        csv_logger = CSVLogger('metrics_' + str(generation) + '.csv', append=True)
+        csv_logger = CSVLogger('results/metrics_' + str(generation) + '.csv', append=True)
 
         evaluationClass = evaluationMetric()
         # Compiling the model
@@ -189,10 +190,10 @@ class Autoencoder(Model):
         # Plotting the normal and anomaly losses with the threshold
         plt.hist(train_loss, bins=50, density=True, label="Normal (train data loss)", alpha=.6, color="green")
         plt.hist(train_loss_a, bins=50, density=True, label="Anomaly (test data loss)", alpha=.6, color="red")
-        plt.axvline(threshold, color='r', linewidth=3, linestyle='dashed',
+        plt.axvline(threshold, color='#000000', linewidth=2, linestyle='dashed',
                     label='Threshold value: {:0.3f}'.format(threshold))
         plt.legend(loc='upper right')
-        plt.title("Abnormality detection report for (" + str(epochs) + ") epochs with generation number: (" + str(
+        plt.title("Abnormality detection report for (" + str(epochs) + ") epochs with generation: (" + str(
             generation) + ")")
         plt.show()
 
@@ -203,13 +204,31 @@ class Autoencoder(Model):
         # Number of correct predictions for Anomaly test data
         preds_a = tf.math.greater(train_loss_a, threshold)
         print("Number of correct predictions for anomaly data: ", tf.math.count_nonzero(preds_a))
-        print(preds_a.shape)
+        # print(preds_a.shape)
+        # print(reconstructions_a)
 
-        # Plotting the normal and anomaly losses with the threshold
-        plt.plot(encoder_out_a[0], label="encoder out")
-        plt.plot(decoder_out_a[0], label="decoder out")
+        plt.plot(reconstructions_a[0], label="predictions for abnormality", alpha=.6, marker=matplotlib.markers.CARETUPBASE, color="black")
+        plt.plot(anomaly_test_data[0], label="Anomaly test data", alpha=.6, color="red", marker="s")
+        plt.legend(loc='upper left')
+        # plt.plot(reconstructions_a[0], label="predictions for anomaly data", marker=matplotlib.markers.CARETUPBASE)
+        plt.title("Prediction signal of the EVAE for (" + str(epochs) + ") epochs with generation (" + str(generation) + ")")
+        plt.show()
+
+        """
+        plt.hist(reconstructions_a[0], bins=50, density=True, label="Predictions for anomaly data", alpha=.6, color="green")
+        plt.hist(anomaly_test_data[0], bins=50, density=True, label="Anomaly test data", alpha=.6, color="red")
+        # plt.plot(reconstructions_a[0], label="predictions for anomaly data", marker=matplotlib.markers.CARETUPBASE)
         plt.title("Abnormality detection report for (" + str(epochs) + ") epochs")
         plt.show()
+        """
+
+        # plt.hist(preds_a, bins=50, density=True, label="predictions for anomalies", alpha=.6, color="red")
+
+        # Plotting the normal and anomaly losses with the threshold
+
+        # plt.plot(preds, label="predictions for normal data", marker=matplotlib.markers.CARETUPBASE)
+        # plt.plot(preds_a, label="predictions for anomalies",)
+
 
 
 class EvolutionaryAutoEncoder:
