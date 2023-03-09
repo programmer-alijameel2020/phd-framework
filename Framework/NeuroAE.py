@@ -46,25 +46,6 @@ class Autoencoder(Model):
                               metrics=['accuracy', evaluationClass.f1_m, evaluationClass.precision_m,
                                        evaluationClass.recall_m])
         self.decoder = decoder_model
-
-        model = Sequential()
-        model.add(Dense(140, activation='sigmoid', input_shape=(141,1)))
-        model.add(Dense(64, activation='relu'))
-        model.add(Dense(32, activation='relu'))
-        model.add(Dense(16, activation='relu'))
-        model.add(Dense(8, activation='relu'))
-
-        model.add(Dense(8, activation='relu'))
-        model.add(Dense(16, activation='relu'))
-        model.add(Dense(32, activation='relu'))
-        model.add(Dense(64, activation='relu'))
-        model.add(Dense(140, activation='sigmoid', input_shape=(141,1)))
-
-        model.compile(loss="categorical_crossentropy", optimizer="adam",
-                              metrics=['accuracy', evaluationClass.f1_m, evaluationClass.precision_m,
-                                       evaluationClass.recall_m])
-        self.model = model
-
         # Performance metrics
         self.acc_history = []
         self.f1_history = []
@@ -148,11 +129,13 @@ class Autoencoder(Model):
                                        patience=stopping_patience,
                                        mode='min')
 
-        # Compiling the model
-        model.compile(optimizer='adam',
-                      loss='mae')
         csv_logger = CSVLogger('metrics_' + str(generation) + '.csv', append=True)
 
+        evaluationClass = evaluationMetric()
+        # Compiling the model
+        model.compile(optimizer='adam',
+                      loss='mae',  metrics=['accuracy', evaluationClass.f1_m, evaluationClass.precision_m,
+                               evaluationClass.recall_m])
         # Training the model
         history = model.fit(normal_train_data, normal_train_data,
                             epochs=epochs,
@@ -222,13 +205,11 @@ class Autoencoder(Model):
         print("Number of correct predictions for anomaly data: ", tf.math.count_nonzero(preds_a))
         print(preds_a.shape)
 
-        """
-              # Plotting the normal and anomaly losses with the threshold
-              plt.plot(encoder_out_a[0], label="encoder out")
-              plt.plot(decoder_out_a[0], label="decoder out")
-              plt.title("Abnormality detection report for (" + str(epochs) + ") epochs")
-              plt.show()
-        """
+        # Plotting the normal and anomaly losses with the threshold
+        plt.plot(encoder_out_a[0], label="encoder out")
+        plt.plot(decoder_out_a[0], label="decoder out")
+        plt.title("Abnormality detection report for (" + str(epochs) + ") epochs")
+        plt.show()
 
 
 class EvolutionaryAutoEncoder:
