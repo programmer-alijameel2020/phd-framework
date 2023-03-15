@@ -1,7 +1,9 @@
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+import matplotlib
 import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 from sklearn.model_selection import train_test_split
 
 # A programmatic implementation for the PHD project: A NeuroEvolution Network for Anomaly Detection in Computer Network
@@ -77,28 +79,6 @@ if __name__ == '__main__':
     """
     """
     # Running the autoEncoder with configurations
-    dataset = 'storage/dataset/FlowByteDataset.txt'
-    # the epochs are increased according to the increasing factor
-    results_iteration = 1
-    results_increase_factor = 5
-    epochs = 5
-    batch_size = 25
-    stopping_patience = 3
-
-    # initialize the evolutionary algorithm parameters
-    population_size = 2
-    mutation_rate = 0.05
-    NO_generations = 2
-
-    EV_AE = EvolutionaryAutoEncoder(model_iteration=epochs
-                                    , population_size=population_size, mutation_rate=mutation_rate,
-                                    generations=NO_generations, dataset=dataset, epochs=epochs,
-                                    batch_size=batch_size, stopping_patience=stopping_patience)
-    EV_AE.create_population()
-    EV_AE.run_evolution()
-    
-    """
-    # Running the autoEncoder with configurations
     dataset = 'storage/dataset/output.txt'
     # the epochs are increased according to the increasing factor
     results_iteration = 1
@@ -110,7 +90,7 @@ if __name__ == '__main__':
     # initialize the evolutionary algorithm parameters
     population_size = 2
     mutation_rate = 0.05
-    NO_generations = 50
+    NO_generations = 25
 
     EV_AE = EvolutionaryAutoEncoder(model_iteration=epochs
                                     , population_size=population_size, mutation_rate=mutation_rate,
@@ -118,3 +98,37 @@ if __name__ == '__main__':
                                     batch_size=batch_size, stopping_patience=stopping_patience)
     EV_AE.create_population()
     EV_AE.run_evolution()
+    """
+
+    acc = [0.8765, 0.8795, 0.9432, 0.9422, 0.9422, 0.9422, 0.9576, 0.9576, 0.9576, 0.9762, 0.9762, 0.9762, 0.9852, 0.9852, 0.9882,  0.9826, 0.9826, 0.9826, 0.9876, 0.9876, 0.9882, 0.9876, 0.9876, 0.9876]
+    dataContent = 'results/metrics_22.csv'
+    columnName = 'val_loss'
+    dataLoss = pd.read_csv(dataContent, usecols=[columnName])
+    plt.plot(dataLoss, label="Validation data loss for anomaly detection (%)", alpha=.6,
+             marker="s", color="red")
+    plt.legend(loc='upper left')
+    # plt.plot(reconstructions_a[0], label="predictions for anomaly data", marker=matplotlib.markers.CARETUPBASE)
+    plt.title("The validation loss for anomaly in generation 22")
+    plt.show()
+
+    print(dataLoss)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -186,16 +186,17 @@ class Autoencoder(Model):
 
         # print("normal_test_data: ", normal_test_data)
         # print("Predictions: ", reconstructions)
+        if(generation >= 23):
+            # Plotting the normal and anomaly losses with the threshold
+            plt.hist(train_loss, bins=50, density=True, label="Normal (train data loss)", alpha=.6, color="green")
+            plt.hist(train_loss_a, bins=50, density=True, label="Anomaly (test data loss)", alpha=.6, color="red")
+            plt.axvline(threshold, color='#000000', linewidth=2, linestyle='dashed',
+                        label='Threshold value: {:0.3f}'.format(threshold))
+            plt.legend(loc='upper right')
+            plt.title("Abnormality detection report for (" + str(epochs) + ") epochs with generation: (" + str(
+                generation) + ")")
+            plt.show()
 
-        # Plotting the normal and anomaly losses with the threshold
-        plt.hist(train_loss, bins=50, density=True, label="Normal (train data loss)", alpha=.6, color="green")
-        plt.hist(train_loss_a, bins=50, density=True, label="Anomaly (test data loss)", alpha=.6, color="red")
-        plt.axvline(threshold, color='#000000', linewidth=2, linestyle='dashed',
-                    label='Threshold value: {:0.3f}'.format(threshold))
-        plt.legend(loc='upper right')
-        plt.title("Abnormality detection report for (" + str(epochs) + ") epochs with generation: (" + str(
-            generation) + ")")
-        plt.show()
 
         # Number of correct predictions for Normal test data
         preds = tf.math.less(train_loss, threshold)
@@ -206,13 +207,15 @@ class Autoencoder(Model):
         print("Number of correct predictions for anomaly data: ", tf.math.count_nonzero(preds_a))
         # print(preds_a.shape)
         # print(reconstructions_a)
-
-        plt.plot(reconstructions_a[0], label="predictions for abnormality", alpha=.6, marker=matplotlib.markers.CARETUPBASE, color="black")
-        plt.plot(anomaly_test_data[0], label="Anomaly test data", alpha=.6, color="red", marker="s")
-        plt.legend(loc='upper left')
-        # plt.plot(reconstructions_a[0], label="predictions for anomaly data", marker=matplotlib.markers.CARETUPBASE)
-        plt.title("Prediction signal of the EVAE for (" + str(epochs) + ") epochs with generation (" + str(generation) + ")")
-        plt.show()
+        if (generation >= 23):
+            plt.plot(reconstructions_a[0], label="predictions for abnormality", alpha=.6,
+                     marker=matplotlib.markers.CARETUPBASE, color="black")
+            plt.plot(anomaly_test_data[0], label="Anomaly test data", alpha=.6, color="red", marker="s")
+            plt.legend(loc='upper left')
+            # plt.plot(reconstructions_a[0], label="predictions for anomaly data", marker=matplotlib.markers.CARETUPBASE)
+            plt.title("Prediction signal of the EVAE for (" + str(epochs) + ") epochs with generation (" + str(
+                generation) + ")")
+            plt.show()
 
         """
         plt.hist(reconstructions_a[0], bins=50, density=True, label="Predictions for anomaly data", alpha=.6, color="green")
