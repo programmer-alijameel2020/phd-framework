@@ -186,7 +186,7 @@ class Autoencoder(Model):
 
         # print("normal_test_data: ", normal_test_data)
         # print("Predictions: ", reconstructions)
-        if(generation >= 23):
+        if(generation >= 0):
             # Plotting the normal and anomaly losses with the threshold
             plt.hist(train_loss, bins=50, density=True, label="Normal (train data loss)", alpha=.6, color="green")
             plt.hist(train_loss_a, bins=50, density=True, label="Anomaly (test data loss)", alpha=.6, color="red")
@@ -207,7 +207,7 @@ class Autoencoder(Model):
         print("Number of correct predictions for anomaly data: ", tf.math.count_nonzero(preds_a))
         # print(preds_a.shape)
         # print(reconstructions_a)
-        if (generation >= 23):
+        if (generation >= 0):
             plt.plot(reconstructions_a[0], label="predictions for abnormality", alpha=.6,
                      marker=matplotlib.markers.CARETUPBASE, color="black")
             plt.plot(anomaly_test_data[0], label="Anomaly test data", alpha=.6, color="red", marker="s")

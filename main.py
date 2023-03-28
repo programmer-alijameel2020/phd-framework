@@ -98,8 +98,9 @@ if __name__ == '__main__':
                                     batch_size=batch_size, stopping_patience=stopping_patience)
     EV_AE.create_population()
     EV_AE.run_evolution()
-    """
-
+    
+    
+    
     acc = [0.8765, 0.8795, 0.9432, 0.9422, 0.9422, 0.9422, 0.9576, 0.9576, 0.9576, 0.9762, 0.9762, 0.9762, 0.9852, 0.9852, 0.9882,  0.9826, 0.9826, 0.9826, 0.9876, 0.9876, 0.9882, 0.9876, 0.9876, 0.9876]
     dataContent = 'results/metrics_22.csv'
     columnName = 'val_loss'
@@ -110,9 +111,8 @@ if __name__ == '__main__':
     # plt.plot(reconstructions_a[0], label="predictions for anomaly data", marker=matplotlib.markers.CARETUPBASE)
     plt.title("The validation loss for anomaly in generation 22")
     plt.show()
-
     print(dataLoss)
-
+    """
 
 
 
