@@ -53,7 +53,7 @@ class EvPNNC_Class:
     def train(self):
         csv_logger = CSVLogger('metrics.csv', append=True)
         self.modelHistory = self.model.fit(self.X_train, self.y_train, batch_size=32, epochs=self.epochs, verbose=1,
-                       shuffle=True, callbacks=[csv_logger])  # , validation_data =(X_test, y_test)
+                       shuffle=True, callbacks=[csv_logger], validation_data=(self.X_test, self.y_test))  # , validation_data =(X_test, y_test)
     def test(self):
         loss, acc, f1_score, precision, recall = self.model.evaluate(self.X_test, self.y_test)
         self.acc_history.append(acc)
@@ -94,6 +94,7 @@ class EvPNNC_Class:
     def runModel(self):
         self.train()
         self.test()
+
         history = self.modelHistory.history
         epochs = range(1, len(history['loss']) + 1)
         acc = history['accuracy']
