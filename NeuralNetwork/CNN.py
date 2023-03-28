@@ -32,9 +32,6 @@ from preprocessor import preprocessor
 
 # Press the green button in the gutter to run the program.
 
-
-# making the deep learning function
-
 def run_network_model():
     dataset_path = 'storage/dataset/02-14-2018.csv'
     """""

@@ -13,6 +13,7 @@ from Framework.NeuroEvolutionCNN import EvolutionaryCNN
 from Framework.NeuroEvolutionAE import EvolutionaryAutoEncoder
 from Framework.NeuroAE import EvolutionaryAutoEncoder
 from NeuralNetwork.SelfOrginizedMap import SOM
+from EvPNNC.EvClassifier import EvPNNC_Class
 
 if __name__ == '__main__':
     """
@@ -114,7 +115,15 @@ if __name__ == '__main__':
     print(dataLoss)
     """
 
+    # Use the genetic neural network (use genetic algorithm for convolutional neural network)
+    # ClassName(population size, mutation rate, generations)
 
+    dataset_path = 'storage/dataset/02-14-2018.csv'
+    # Model iteration
+    epochs = 2
+    EVPNNC = EvPNNC_Class()
+    EVPNNC.parameterInitialization(dataset_path, epochs)
+    EVPNNC.runModel()
 
 
 
