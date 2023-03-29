@@ -120,7 +120,7 @@ if __name__ == '__main__':
 
     dataset_path = 'storage/dataset/02-14-2018.csv'
     # Model iteration
-    epochs = 2
+    epochs = 1
     EVPNNC = EvPNNC_Class()
     EVPNNC.parameterInitialization(dataset_path, epochs)
     EVPNNC.runModel()

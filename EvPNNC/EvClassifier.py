@@ -10,15 +10,17 @@ from keras.callbacks import CSVLogger
 from EvPNNC.EvaluationMetric import evaluationMetric
 from EvPNNC.preprocessor import preprocessor
 import seaborn as sns
-from EvPNNC.NeuralNetwork import autoEncoderNeuralNetwork
+from EvPNNC.NeuralNetwork import modelConstruction, initializeLayerArray
 
 palette = sns.color_palette("rocket_r")
 
 
 class EvPNNC_Class:
     def __init__(self):
+        # get the layer information within current autoEncoder implementation
+        layerArray = initializeLayerArray()
         # creates the autoEncoder classifier
-        model = autoEncoderNeuralNetwork()
+        model = modelConstruction(layerArray)
         evaluationClass = evaluationMetric()
         model.compile(loss="categorical_crossentropy", optimizer="adam",
                       metrics=['accuracy', evaluationClass.f1_m, evaluationClass.precision_m, evaluationClass.recall_m])
