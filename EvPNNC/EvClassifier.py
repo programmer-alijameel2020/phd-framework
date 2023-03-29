@@ -11,6 +11,7 @@ from EvPNNC.EvaluationMetric import evaluationMetric
 from EvPNNC.preprocessor import preprocessor
 import seaborn as sns
 from EvPNNC.NeuralNetwork import modelConstruction, initializeLayerArray
+from keras_visualizer import visualizer
 
 palette = sns.color_palette("rocket_r")
 
@@ -96,7 +97,7 @@ class EvPNNC_Class:
     def runModel(self):
         self.train()
         self.test()
-
+        self.model.summary()
         history = self.modelHistory.history
         epochs = range(1, len(history['loss']) + 1)
         acc = history['accuracy']

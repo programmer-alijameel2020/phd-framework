@@ -20,6 +20,7 @@ def initializeLayerArray():
     layerArray.append(BatchNormalization())
     layerArray.append(MaxPooling1D(pool_size=3, strides=2, padding='same'))
     layerArray.append(Flatten())
+    layerArray.append(Dense(140, activation = 'sigmoid', input_shape = (72, 1)))
     layerArray.append(Dense(64, activation='relu'))
     layerArray.append(Dense(3, activation='softmax'))
     return layerArray
