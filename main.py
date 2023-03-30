@@ -118,7 +118,7 @@ if __name__ == '__main__':
     # Use the genetic neural network (use genetic algorithm for convolutional neural network)
     # ClassName(population size, mutation rate, generations)
 
-    dataset_path = 'storage/dataset/02-14-2018.csv'
+    dataset_path = 'storage/dataset/02-15-2018.csv'
     # Model iteration
     epochs = 1
     EVPNNC = EvPNNC_Class()
