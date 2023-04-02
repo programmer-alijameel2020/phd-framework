@@ -100,6 +100,12 @@ class EvPNNC_Class:
         self.test()
         self.model.summary()
         history = self.modelHistory.history
+        filename = 'layer_'
+        # Open the file
+        with open(filename + 'report.txt', 'w') as fh:
+            # Pass the file handle in as a lambda function to make it callable
+            self.model.summary(print_fn=lambda x: fh.write(x + '\n'))
+
         epochs = range(1, len(history['loss']) + 1)
         acc = history['accuracy']
         loss = history['loss']
