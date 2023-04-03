@@ -8,7 +8,7 @@ from sklearn.preprocessing import LabelEncoder
 
 
 class preprocessor:
-    def data_preprocessor(self, dataset_path):
+    def data_preprocessor(self, dataset_path, number_of_classes):
         # check the available data
 
         network_data = pd.read_csv(dataset_path)
@@ -113,8 +113,8 @@ class preprocessor:
         target_train = train_dataset['Label']
         target_test = test_dataset['Label']
         target_train.unique(), target_test.unique()
-        y_train = to_categorical(target_train, num_classes=3)
-        y_test = to_categorical(target_test, num_classes=3)
+        y_train = to_categorical(target_train, num_classes=number_of_classes)
+        y_test = to_categorical(target_test, num_classes=number_of_classes)
 
         """"" 
             Data Splicing

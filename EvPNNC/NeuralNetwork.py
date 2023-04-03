@@ -38,6 +38,7 @@ def layerStringConverter(layerStringArray):
 # are assigned according to the layer type
 def createJsonObject(layerTypes, parameters):
     layer_array = []
+
     for layer in layerTypes:
         if layer == 'Conv1D':
             layerParameters = {
@@ -91,7 +92,11 @@ def initializeLayerArray():
         'input_shape': (72, 1),
         'pool_size': 3,
         'strides': 2,
-        'unit_1': 64,
+        'unit_1': 140,
+        'unit_2': 64,
+        'unit_3': 32,
+        'unit_4': 16,
+        'unit_5': 10,
         'activation': ['sigmoid', 'relu', 'softmax']
     }
 
@@ -100,18 +105,17 @@ def initializeLayerArray():
 
     layer_count = 1
     # Stack the processing layers
-    first_layer = layers[0](filters=parameters['filters'], kernel_size=parameters['kernel_size'],
+    ConvLayer = layers[0](filters=parameters['filters'], kernel_size=parameters['kernel_size'],
                             activation=parameters['activation'][1], padding=parameters['padding'],
                             input_shape=parameters['input_shape'])
-    layer2 = layers[1]()
-    layer3 = layers[2](pool_size=parameters['pool_size'], strides=parameters['strides'], padding=parameters['padding'])
-    layer4 = layers[3]()
-    layer5 = layers[4](parameters['unit_1'], activation=parameters['activation'][0])
-    layer_last = layers[4](3, activation=parameters['activation'][2])
+    BatchNormalizationLayer = layers[1]()
+    MXPoolingLayer = layers[2](pool_size=parameters['pool_size'], strides=parameters['strides'], padding=parameters['padding'])
+    FlattenLayer = layers[3]()
+    Dense1 = layers[4](parameters['unit_1'], activation=parameters['activation'][0])
+    Dense_out = layers[4](parameters['unit_4'], activation=parameters['activation'][2])
 
-    # Append into an array
-    layerArray = [first_layer, layer2, layer3, layer4, layer5, layer_last]
-
+    layerArray = [ConvLayer, BatchNormalizationLayer, MXPoolingLayer, FlattenLayer, Dense1, Dense_out]
     # create a conditional statement to assign the parameters according to the layer type and store in layer array
+
     createJsonObject(layerTypes, parameters)
     return layerArray
