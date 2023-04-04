@@ -1,3 +1,5 @@
+import keras
+import tf
 from keras import backend as K
 
 
@@ -18,3 +20,7 @@ class evaluationMetric:
         precision = self.precision_m(y_true, y_pred)
         recall = self.recall_m(y_true, y_pred)
         return 2 * ((precision * recall) / (precision + recall + K.epsilon()))
+
+    def meanSquaredError(self, y_true, y_pred):
+        mse = keras.losses.MeanSquaredError()
+        return mse(y_true, y_pred)

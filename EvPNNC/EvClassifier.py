@@ -3,6 +3,7 @@
 
 import keras
 import numpy as np
+import pandas as pd
 from keras.models import Sequential
 from keras.layers import Dense, Flatten, Dropout, Conv1D, BatchNormalization, MaxPooling1D
 import matplotlib.pyplot as plt
@@ -24,7 +25,7 @@ class EvPNNC_Class:
         model = modelConstruction(layerArray)
         evaluationClass = evaluationMetric()
         model.compile(loss="categorical_crossentropy", optimizer="adam",
-                      metrics=['accuracy', evaluationClass.f1_m, evaluationClass.precision_m, evaluationClass.recall_m])
+                      metrics=['accuracy', evaluationClass.f1_m, evaluationClass.precision_m, evaluationClass.recall_m, evaluationClass.meanSquaredError])
 
         self.model = model
         self.acc_history = []
@@ -32,6 +33,7 @@ class EvPNNC_Class:
         self.precision_history = []
         self.rec_history = []
         self.loss_history = []
+        self.MSE_history = []
 
         self.number_of_classes = None
         self.y_test = None
@@ -59,12 +61,13 @@ class EvPNNC_Class:
                 self.X_test, self.y_test))  # , validation_data =(X_test, y_test)
 
     def test(self):
-        loss, acc, f1_score, precision, recall = self.model.evaluate(self.X_test, self.y_test)
+        loss, acc, f1_score, precision, recall, MSE = self.model.evaluate(self.X_test, self.y_test)
         self.acc_history.append(acc)
         self.f1_history.append(f1_score)
         self.precision_history.append(precision)
         self.rec_history.append(recall)
         self.loss_history.append(loss)
+        self.MSE_history.append(MSE)
         return acc
 
     def load_layer_weights(self, weights):
@@ -122,3 +125,12 @@ class EvPNNC_Class:
         # plt.plot(epochs, val_acc, label='val_acc')
         plt.legend()
         plt.show()
+
+    def averageResultsCalculater(self, metricsData):
+        metrics = pd.read_csv(metricsData)
+        PreProcessorClass = preprocessor()
+        print(PreProcessorClass.digitFloat(metrics['accuracy'].mean()))
+        print(PreProcessorClass.digitFloat(metrics['val_accuracy'].mean()))
+        print(PreProcessorClass.digitFloat(metrics['meanSquaredError'].mean()))
+
+

@@ -125,6 +125,9 @@ if __name__ == '__main__':
     EVPNNC.parameterInitialization(dataset_path, epochs)
     EVPNNC.runModel()
 
+    metricDataset = 'metrics.csv'
+    EVPNNC.averageResultsCalculater(metricDataset)
+
 
 
 

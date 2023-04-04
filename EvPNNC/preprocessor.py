@@ -178,3 +178,6 @@ class preprocessor:
         arrayPrinted = array_feature.reshape(140, 140)
         print(arrayPrinted)
         np.savetxt('storage/dataset/02-15-2018-FlowPkts.txt', arrayPrinted, delimiter=', ')
+
+    def digitFloat(self, floatParam):
+        return float("{:.5f}".format(floatParam))
