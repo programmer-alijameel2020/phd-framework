@@ -183,7 +183,7 @@ class EvPNNC_Class:
         parameters['unit_4'] = parametersArray['unit_4']
         parameters['activation'] = parametersArray['activation']
         
-        # deploy the model
+        # deploy the model according to the new layers
         self.model = modelConstruction(layerArray)
         # set the metrics and compilation
         self.model.compile(loss="categorical_crossentropy", optimizer="adam",
