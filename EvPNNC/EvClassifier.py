@@ -182,6 +182,7 @@ class EvPNNC_Class:
         parameters['unit_3'] = parametersArray['unit_3'] * 2
         parameters['unit_4'] = parametersArray['unit_4']
         parameters['activation'] = parametersArray['activation']
+        
         # deploy the model
         self.model = modelConstruction(layerArray)
         # set the metrics and compilation

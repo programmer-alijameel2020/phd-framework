@@ -31,7 +31,6 @@ def modelConstruction(LayerArray):
     model = Sequential()
     for layer in LayerArray:
         model.add(layer)
-    print(parameters)
     return model
 
 
@@ -136,7 +135,6 @@ def initializeLayerArray():
 def adaptiveLayer():
     # Get the current neural network structure
     currentNetworkStructure = initializeLayerArray()
-
     # Identify the layer insertion point
     InsertionPoint = 4
     layers = layerStringConverter(layerTypes)
