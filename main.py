@@ -122,12 +122,16 @@ if __name__ == '__main__':
     # Model iteration
     epochs = 1
     EVPNNC = EvPNNC_Class()
+    # Initialize the model parameters
     EVPNNC.parameterInitialization(dataset_path, epochs)
+    # Run the model
     EVPNNC.runModel()
-
     metricDataset = 'metrics.csv'
     EVPNNC.averageResultsCalculater(metricDataset)
-
+    # network adaptation
+    EVPNNC.netAdaptation()
+    # Net structure adjustment
+    EVPNNC.netAdjustment()
 
 
 

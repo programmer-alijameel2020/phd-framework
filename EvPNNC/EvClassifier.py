@@ -11,7 +11,7 @@ from keras.callbacks import CSVLogger
 from EvPNNC.EvaluationMetric import evaluationMetric
 from EvPNNC.preprocessor import preprocessor
 import seaborn as sns
-from EvPNNC.NeuralNetwork import modelConstruction, initializeLayerArray
+from EvPNNC.NeuralNetwork import modelConstruction, initializeLayerArray, adaptiveLayer, initParameters, parameters
 from keras_visualizer import visualizer
 
 palette = sns.color_palette("rocket_r")
@@ -25,9 +25,11 @@ class EvPNNC_Class:
         model = modelConstruction(layerArray)
         evaluationClass = evaluationMetric()
         model.compile(loss="categorical_crossentropy", optimizer="adam",
-                      metrics=['accuracy', evaluationClass.f1_m, evaluationClass.precision_m, evaluationClass.recall_m, evaluationClass.meanSquaredError])
+                      metrics=['accuracy', evaluationClass.f1_m, evaluationClass.precision_m, evaluationClass.recall_m,
+                               evaluationClass.meanSquaredError])
 
         self.model = model
+        self.evaluationClass = evaluationClass
         self.acc_history = []
         self.f1_history = []
         self.precision_history = []
@@ -117,6 +119,7 @@ class EvPNNC_Class:
         # val_loss = history['val_loss']
 
         # visualize training and val accuracy
+        """"
         plt.figure(figsize=(10, 5))
         plt.title('Training accuracy')
         plt.xlabel('Epochs')
@@ -125,6 +128,7 @@ class EvPNNC_Class:
         # plt.plot(epochs, val_acc, label='val_acc')
         plt.legend()
         plt.show()
+        """
 
     def averageResultsCalculater(self, metricsData):
         metrics = pd.read_csv(metricsData)
@@ -133,4 +137,59 @@ class EvPNNC_Class:
         print(PreProcessorClass.digitFloat(metrics['val_accuracy'].mean()))
         print(PreProcessorClass.digitFloat(metrics['meanSquaredError'].mean()))
 
+    def netAdaptation(self):
+        # get the new structure
+        newNetStructure = adaptiveLayer()
+        # assign the model from the layer adaptation process
+        self.model = modelConstruction(newNetStructure)
+        # set the metrics and compilation
+        self.model.compile(loss="categorical_crossentropy", optimizer="adam",
+                           metrics=['accuracy', self.evaluationClass.f1_m, self.evaluationClass.precision_m,
+                                    self.evaluationClass.recall_m, self.evaluationClass.meanSquaredError])
 
+        # run the training and testing models
+        self.train()
+        self.test()
+        self.model.summary()
+
+    def netAdjustment(self):
+        # get the current structure
+        layerArray = initializeLayerArray()
+
+        # get the current parameters
+        parametersArray = initParameters()
+
+        # adjust the parameters according to the adjustment factor
+        parametersArray['filters'] = parametersArray['filters'] + 1
+        parametersArray['kernel_size'] = parametersArray['kernel_size'] + 1
+        parametersArray['padding'] = parametersArray['padding']
+        parametersArray['pool_size'] = parametersArray['pool_size'] + 2
+        parametersArray['strides'] = parametersArray['strides'] + 1
+        parametersArray['unit_1'] = parametersArray['unit_1'] * 2
+        parametersArray['unit_2'] = parametersArray['unit_2'] * 2
+        parametersArray['unit_3'] = parametersArray['unit_3'] * 2
+        parametersArray['unit_4'] = parametersArray['unit_4']
+        parametersArray['activation'] = parametersArray['activation']
+
+        # adjust the parameters according to the adjustment factor
+        parameters['filters'] = parametersArray['filters'] + 1
+        parameters['kernel_size'] = parametersArray['kernel_size'] + 1
+        parameters['padding'] = parametersArray['padding']
+        parameters['pool_size'] = parametersArray['pool_size'] + 2
+        parameters['strides'] = parametersArray['strides'] + 1
+        parameters['unit_1'] = parametersArray['unit_1'] * 2
+        parameters['unit_2'] = parametersArray['unit_2'] * 2
+        parameters['unit_3'] = parametersArray['unit_3'] * 2
+        parameters['unit_4'] = parametersArray['unit_4']
+        parameters['activation'] = parametersArray['activation']
+        # deploy the model
+        self.model = modelConstruction(layerArray)
+        # set the metrics and compilation
+        self.model.compile(loss="categorical_crossentropy", optimizer="adam",
+                           metrics=['accuracy', self.evaluationClass.f1_m, self.evaluationClass.precision_m,
+                                    self.evaluationClass.recall_m, self.evaluationClass.meanSquaredError])
+
+        # run the training and testing models
+        self.train()
+        self.test()
+        self.model.summary()

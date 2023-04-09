@@ -5,14 +5,45 @@ import json
 
 import keras
 
+# Layer types array
+layerTypes = ['Conv1D', 'BatchNormalization', 'MaxPooling1D', 'Flatten', 'Dense']
 
+# the layers parameters with corresponding values
+parameters = {
+    'filters': 64,
+    'kernel_size': 6,
+    'padding': 'same',
+    'input_shape': (72, 1),
+    'pool_size': 3,
+    'strides': 2,
+    'unit_1': 140,
+    'unit_2': 64,
+    'unit_3': 32,
+    'unit_4': 16,
+    'activation': ['sigmoid', 'relu', 'softmax']
+}
+
+
+# Construct the model according to the passed Layer array
 def modelConstruction(LayerArray):
     # design an autoEncoder neural network classifier for anomaly detection
     # LayerArray: is the parameter that contains the layer types and configurations
     model = Sequential()
     for layer in LayerArray:
         model.add(layer)
+    print(parameters)
     return model
+
+
+# returns the current network parameters
+def initParameters():
+    return parameters
+
+
+# adjust the current parameters
+def adjustParameters(newParameters):
+    # adjust the parameters according to the adjustment factor
+    return newParameters
 
 
 # A special type function that takes the layer string as a string and convert it into a keras layer
@@ -81,24 +112,6 @@ def initializeLayerArray():
     # adding the processing layers to the layer array to be forwarded for construction
     # Initialize the parameters of the processing layers
 
-    # Layer types array
-    layerTypes = ['Conv1D', 'BatchNormalization', 'MaxPooling1D', 'Flatten', 'Dense']
-
-    # the layers parameters with corresponding values
-    parameters = {
-        'filters': 64,
-        'kernel_size': 6,
-        'padding': 'same',
-        'input_shape': (72, 1),
-        'pool_size': 3,
-        'strides': 2,
-        'unit_1': 140,
-        'unit_2': 64,
-        'unit_3': 32,
-        'unit_4': 16,
-        'activation': ['sigmoid', 'relu', 'softmax']
-    }
-
     # Converts the string array into a keras model using the special type function
     layers = layerStringConverter(layerTypes)
 
@@ -118,3 +131,15 @@ def initializeLayerArray():
     # create a conditional statement to assign the parameters according to the layer type and store in layer array
     createJsonObject(layerTypes, parameters)
     return layerArray
+
+
+def adaptiveLayer():
+    # Get the current neural network structure
+    currentNetworkStructure = initializeLayerArray()
+
+    # Identify the layer insertion point
+    InsertionPoint = 4
+    layers = layerStringConverter(layerTypes)
+    DensLayer = layers[4](parameters['unit_2'], activation=parameters['activation'][0])
+    currentNetworkStructure.insert(InsertionPoint, DensLayer)
+    return currentNetworkStructure

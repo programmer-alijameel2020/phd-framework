@@ -164,8 +164,6 @@ class preprocessor:
         with open("storage/dataset/features/02-14-2018-" + name_of_feature + ".txt", 'wb') as f:
             np.savetxt(f, fileArray, delimiter=' ', newline='\n', header='', footer='', comments='# ')
 
-
-
     def create_unlabeled_feature(self, datasetPassed, featureName):
         # Running the preprocessor to generate unsupervised data for a certain feature
         dataset = datasetPassed
