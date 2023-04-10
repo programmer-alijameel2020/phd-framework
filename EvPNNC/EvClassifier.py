@@ -21,13 +21,14 @@ class EvPNNC_Class:
     def __init__(self):
         # get the layer information within current autoEncoder implementation
         layerArray = initializeLayerArray()
-        # creates the autoEncoder classifier
+        # Model deployment
         model = modelConstruction(layerArray)
         evaluationClass = evaluationMetric()
+        # Model compilation with performance metrics
         model.compile(loss="categorical_crossentropy", optimizer="adam",
                       metrics=['accuracy', evaluationClass.f1_m, evaluationClass.precision_m, evaluationClass.recall_m,
                                evaluationClass.meanSquaredError])
-
+        # Initializes the bypass parameters for the learning model
         self.model = model
         self.evaluationClass = evaluationClass
         self.acc_history = []
@@ -36,16 +37,19 @@ class EvPNNC_Class:
         self.rec_history = []
         self.loss_history = []
         self.MSE_history = []
-
         self.number_of_classes = None
         self.y_test = None
         self.X_test = None
         self.y_train = None
         self.X_train = None
-        self.model_iteration = None
         self.dataset = None
         self.epochs = None
         self.modelHistory = None
+        self.population_size = None
+        self.batch_size = None
+        self.stopping_patience = None
+        self.mutation_rate = None
+        self.generations = None
 
     def return_acc_history(self):
         return self.acc_history
@@ -56,12 +60,14 @@ class EvPNNC_Class:
     def set_layer_weight(self, i, weight):
         self.model.layers[i].set_weights(weight)
 
+    # train() function: responsible for the training process of the learning model within EVP_NNC
     def train(self):
         csv_logger = CSVLogger('metrics.csv', append=True)
-        self.modelHistory = self.model.fit(self.X_train, self.y_train, batch_size=32, epochs=self.epochs, verbose=1,
-                                           shuffle=True, callbacks=[csv_logger], validation_data=(
-                self.X_test, self.y_test))  # , validation_data =(X_test, y_test)
+        self.modelHistory = self.model.fit(self.X_train, self.y_train, batch_size=self.batch_size, epochs=self.epochs,
+                                           verbose=1, shuffle=True, callbacks=[csv_logger], validation_data=(
+                                            self.X_test, self.y_test))  # validation_data =(X_test, y_test)
 
+    # test() function: responsible for the testing phase within the learning model of EVP_NNC
     def test(self):
         loss, acc, f1_score, precision, recall, MSE = self.model.evaluate(self.X_test, self.y_test)
         self.acc_history.append(acc)
@@ -88,11 +94,11 @@ class EvPNNC_Class:
         self.model.summary()
 
     # parameterInitialization() imports the data preprocessor to extract train and testing
-    def parameterInitialization(self, dataset, epochs):
+    def parameterInitialization(self, dataset, epochs, population_size, mutation_rate, batch_size,
+                                stopping_patience=2, generations=50):
         PreProcessorClass = preprocessor()
         number_of_classes = 8
         X_train, y_train, X_test, y_test = PreProcessorClass.data_preprocessor(dataset, number_of_classes)
-
         self.dataset = dataset
         self.epochs = epochs
         self.X_train = X_train
@@ -100,25 +106,20 @@ class EvPNNC_Class:
         self.X_test = X_test
         self.y_test = y_test
         self.number_of_classes = number_of_classes
+        self.population_size = population_size
+        self.mutation_rate = mutation_rate
+        self.batch_size = batch_size
+        self.stopping_patience = stopping_patience
+        self.generations = generations
 
+    """
+    Evolutionary computing part 
+    This section contains the functions that performs genetic programming to the learning model 
+    """
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    """
+    End of genetic programming section
+    """
 
     def runModel(self):
         self.train()
@@ -201,7 +202,7 @@ class EvPNNC_Class:
         parameters['unit_3'] = parametersArray['unit_3'] * 2
         parameters['unit_4'] = parametersArray['unit_4']
         parameters['activation'] = parametersArray['activation']
-        
+
         # deploy the model according to the new layers
         self.model = modelConstruction(layerArray)
         # set the metrics and compilation

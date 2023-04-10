@@ -119,32 +119,28 @@ if __name__ == '__main__':
     # ClassName(population size, mutation rate, generations)
 
     dataset_path = 'storage/dataset/02-15-2018.csv'
-    # Model iteration
+
+    # the epochs are increased according to the increasing factor
     epochs = 1
-    EVPNNC = EvPNNC_Class()
+    batch_size = 32
+    stopping_patience = 3
+    # initialize the evolutionary algorithm parameters
+    population_size = 2
+    mutation_rate = 0.05
+    NO_generations = 5
+
+    # Model iteration
+
+    EVP_NNC = EvPNNC_Class()
     # Initialize the model parameters
-    EVPNNC.parameterInitialization(dataset_path, epochs)
+    EVP_NNC.parameterInitialization(dataset=dataset_path, epochs=epochs, population_size=population_size,
+                                    mutation_rate=mutation_rate, generations=NO_generations, batch_size=batch_size,
+                                    stopping_patience=stopping_patience)
     # Run the model
-    EVPNNC.runModel()
+    EVP_NNC.runModel()
     metricDataset = 'metrics.csv'
-    EVPNNC.averageResultsCalculater(metricDataset)
+    EVP_NNC.averageResultsCalculater(metricDataset)
     # network adaptation
-    EVPNNC.netAdaptation()
+    EVP_NNC.netAdaptation()
     # Net structure adjustment
-    EVPNNC.netAdjustment()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    EVP_NNC.netAdjustment()
