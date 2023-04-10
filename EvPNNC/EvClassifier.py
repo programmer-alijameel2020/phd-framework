@@ -50,6 +50,7 @@ class EvPNNC_Class:
         self.stopping_patience = None
         self.mutation_rate = None
         self.generations = None
+        self.population = None
 
     def return_acc_history(self):
         return self.acc_history
@@ -116,7 +117,62 @@ class EvPNNC_Class:
     Evolutionary computing part 
     This section contains the functions that performs genetic programming to the learning model 
     """
+    # create_population: creating the population from the learning model
+    def create_population(self):
+        self.population = [EvPNNC_Class() for i in
+                           range(self.population_size)]
 
+    # runEncoderEvolution: Run the learning model according to the generation number
+    def runGeneticEncoding(self):
+        for member in self.population:
+            member.runModel()
+
+    def normalize(self):
+        sum_ = sum(self.acc)
+        self.norm_acc = [i / sum_ for i in self.acc]
+        print("\nNormalization sum: ", sum(self.norm_acc))
+        # assert sum(self.norm_acc) == 1
+
+    def clear_losses(self):
+        self.norm_acc = []
+        self.acc = []
+
+    def mutate(self):
+        for member in self.population:
+            for i in range(member.weight_len()):
+                if np.random.random() < self.mutation_rate:
+                    print("\nMutation!")
+                    old_weight = member.get_layer_weight(i)
+                    new_weight = [np.random.uniform(low=-1, high=1, size=old_weight[i].shape) for i in
+                                  range(len(old_weight))]
+                    member.set_layer_weight(i, new_weight)
+
+    def reproduction(self):
+        """
+        Reproduction through midpoint crossover method
+        """
+        population_idx = [i for i in range(len(self.population))]
+        for i in range(len(self.population)):
+            # selects two parents probabilistic accroding to the fitness
+            if sum(self.norm_acc) != 0:
+                parent1 = np.random.choice(population_idx, p=self.norm_acc)
+                parent2 = np.random.choice(population_idx, p=self.norm_acc)
+            else:
+                # if there are no "best" parents choose randomly
+                parent1 = np.random.choice(population_idx)
+                parent2 = np.random.choice(population_idx)
+
+            # picking random midpoint for crossing over name/DNA
+            parent1_weights = self.population[parent1].give_weights()
+            parent2_weights = self.population[parent2].give_weights()
+
+            mid_point = np.random.choice([i for i in range(len(parent1_weights))])
+            # adding DNA-Sequences of the parents to final DNA
+            self.children_population_weights.append(parent1_weights[:mid_point] + parent2_weights[mid_point:])
+        # old population gets the new and proper weights
+        for i in range(len(self.population)):
+            for j in range(len(self.children_population_weights)):
+                self.population[i].load_layer_weights(self.children_population_weights[j])
     """
     End of genetic programming section
     """

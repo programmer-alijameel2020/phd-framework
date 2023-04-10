@@ -125,16 +125,18 @@ if __name__ == '__main__':
     batch_size = 32
     stopping_patience = 3
     # initialize the evolutionary algorithm parameters
-    population_size = 2
-    mutation_rate = 0.05
-    NO_generations = 5
-
-    # Model iteration
+    POPULATION_SIZE = 5  # population size
+    MIN_DEPTH = 2  # minimal initial random tree depth
+    MAX_DEPTH = 5  # maximal initial random tree depth
+    GENERATIONS = 5  # maximal number of generations to run evolution
+    TOURNAMENT_SIZE = 5  # size of tournament for tournament selection
+    CROSSOVER_RATE = 0.8  # crossover rate
+    PROB_MUTATION = 0.2  # per-node mutation probability
 
     EVP_NNC = EvPNNC_Class()
     # Initialize the model parameters
-    EVP_NNC.parameterInitialization(dataset=dataset_path, epochs=epochs, population_size=population_size,
-                                    mutation_rate=mutation_rate, generations=NO_generations, batch_size=batch_size,
+    EVP_NNC.parameterInitialization(dataset=dataset_path, epochs=epochs, population_size=POPULATION_SIZE,
+                                    mutation_rate=PROB_MUTATION, generations=GENERATIONS, batch_size=batch_size,
                                     stopping_patience=stopping_patience)
     # Run the model
     EVP_NNC.runModel()
