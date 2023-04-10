@@ -20,6 +20,7 @@ parameters = {
     'unit_2': 64,
     'unit_3': 32,
     'unit_4': 16,
+    'unit_5': 8,
     'activation': ['sigmoid', 'relu', 'softmax']
 }
 
@@ -124,9 +125,14 @@ def initializeLayerArray():
                                padding=parameters['padding'])
     FlattenLayer = layers[3]()
     Dense1 = layers[4](parameters['unit_1'], activation=parameters['activation'][0])
-    Dense_out = layers[4](parameters['unit_4'], activation=parameters['activation'][2])
+    Dense2 = layers[4](parameters['unit_2'], activation=parameters['activation'][0])
+    Dense3 = layers[4](parameters['unit_3'], activation=parameters['activation'][0])
+    Dense4 = layers[4](parameters['unit_4'], activation=parameters['activation'][0])
 
-    layerArray = [ConvLayer, BatchNormalizationLayer, MXPoolingLayer, FlattenLayer, Dense1, Dense_out]
+    Dense_out = layers[4](parameters['unit_5'], activation=parameters['activation'][2])
+
+    layerArray = [ConvLayer, BatchNormalizationLayer, MXPoolingLayer, FlattenLayer, Dense1, Dense2, Dense3, Dense4,
+                    Dense_out]
     # create a conditional statement to assign the parameters according to the layer type and store in layer array
     createJsonObject(layerTypes, parameters)
     return layerArray

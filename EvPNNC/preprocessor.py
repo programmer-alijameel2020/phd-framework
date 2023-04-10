@@ -107,7 +107,7 @@ class preprocessor:
           p.gca().add_artist(circle)
           plt.show()
         """
-        ## Making X & Y Variables (CNN)
+        ## Making X & Y Variables
 
         test_dataset = train_dataset.sample(frac=0.1)
         target_train = train_dataset['Label']

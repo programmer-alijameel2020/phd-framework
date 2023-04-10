@@ -90,7 +90,7 @@ class EvPNNC_Class:
     # parameterInitialization() imports the data preprocessor to extract train and testing
     def parameterInitialization(self, dataset, epochs):
         PreProcessorClass = preprocessor()
-        number_of_classes = 16
+        number_of_classes = 8
         X_train, y_train, X_test, y_test = PreProcessorClass.data_preprocessor(dataset, number_of_classes)
 
         self.dataset = dataset
@@ -100,6 +100,25 @@ class EvPNNC_Class:
         self.X_test = X_test
         self.y_test = y_test
         self.number_of_classes = number_of_classes
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def runModel(self):
         self.train()
