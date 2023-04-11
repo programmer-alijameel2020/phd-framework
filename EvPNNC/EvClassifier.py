@@ -5,6 +5,7 @@ import keras
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from keras import Model
 from keras.callbacks import CSVLogger, EarlyStopping
 from sklearn.preprocessing import MinMaxScaler
 
@@ -16,8 +17,9 @@ from EvPNNC.NeuralNetwork import modelConstruction, initializeLayerArray, adapti
 palette = sns.color_palette("rocket_r")
 
 
-class EvPNNC_Class:
+class EvPNNC_Class(Model):
     def __init__(self):
+        super(EvPNNC_Class, self).__init__()
         # get the layer information within current autoEncoder implementation
 
         layerArray = initializeLayerArray()
@@ -65,14 +67,14 @@ class EvPNNC_Class:
         self.model.layers[i].set_weights(weight)
 
     # train() function: responsible for the training process of the learning model within EVP_NNC
-    def train(self):
+    def train(self, generation):
 
         # creating an early_stopping
         early_stopping = EarlyStopping(monitor='val_loss',
                                        patience=self.stopping_patience,
                                        mode='min')
 
-        csv_logger = CSVLogger('results/metrics_' + str(self.generations) + '.csv', append=True)
+        csv_logger = CSVLogger('results/metrics_' + str(generation) + '.csv', append=True)
 
         self.modelHistory = self.model.fit(self.X_train, self.y_train, batch_size=self.batch_size, epochs=self.epochs,
                                            verbose=1, shuffle=True, callbacks=[early_stopping, csv_logger],
@@ -135,8 +137,9 @@ class EvPNNC_Class:
                            range(self.population_size)]
 
     # runEncoderEvolution: Run the learning model according to the generation number
-    def runGeneticEncoding(self):
-        self.runModel()
+    def runGeneticEncoding(self, generation):
+        for member in self.population:
+            self.runModel(generation)
 
     def normalize(self):
         sum_ = sum(self.acc)
@@ -188,7 +191,7 @@ class EvPNNC_Class:
     def run_evolution(self):
         for episode in range(self.generations):
             self.clear_losses()
-            self.runGeneticEncoding()
+            self.runGeneticEncoding(episode)
             if episode != self.generations - 1:
                 self.normalize()
                 self.reproduction()
@@ -200,8 +203,8 @@ class EvPNNC_Class:
     End of genetic programming section
     """
 
-    def runModel(self):
-        self.train()
+    def runModel(self, generation):
+        self.train(generation)
         self.test()
         self.model.summary()
         history = self.modelHistory.history
