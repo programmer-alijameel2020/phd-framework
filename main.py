@@ -121,7 +121,7 @@ if __name__ == '__main__':
     dataset_path = 'storage/dataset/02-15-2018.csv'
 
     # the epochs are increased according to the increasing factor
-    epochs = 1
+    epochs = 3
     batch_size = 32
     stopping_patience = 3
     # initialize the evolutionary algorithm parameters
@@ -138,11 +138,12 @@ if __name__ == '__main__':
     EVP_NNC.parameterInitialization(dataset=dataset_path, epochs=epochs, population_size=POPULATION_SIZE,
                                     mutation_rate=PROB_MUTATION, generations=GENERATIONS, batch_size=batch_size,
                                     stopping_patience=stopping_patience)
+    EVP_NNC.create_population()
     # Run the model
-    EVP_NNC.runModel()
+    EVP_NNC.run_evolution()
     metricDataset = 'metrics.csv'
     EVP_NNC.averageResultsCalculater(metricDataset)
     # network adaptation
-    EVP_NNC.netAdaptation()
+    # EVP_NNC.netAdaptation()
     # Net structure adjustment
-    EVP_NNC.netAdjustment()
+    # EVP_NNC.netAdjustment()
