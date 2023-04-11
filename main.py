@@ -121,14 +121,14 @@ if __name__ == '__main__':
     dataset_path = 'storage/dataset/02-15-2018.csv'
 
     # the epochs are increased according to the increasing factor
-    epochs = 3
+    epochs = 50
     batch_size = 32
     stopping_patience = 3
     # initialize the evolutionary algorithm parameters
-    POPULATION_SIZE = 5  # population size
+    POPULATION_SIZE = 1  # population size
     MIN_DEPTH = 2  # minimal initial random tree depth
     MAX_DEPTH = 5  # maximal initial random tree depth
-    GENERATIONS = 5  # maximal number of generations to run evolution
+    GENERATIONS = 10  # maximal number of generations to run evolution
     TOURNAMENT_SIZE = 5  # size of tournament for tournament selection
     CROSSOVER_RATE = 0.8  # crossover rate
     PROB_MUTATION = 0.2  # per-node mutation probability

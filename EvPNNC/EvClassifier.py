@@ -77,7 +77,7 @@ class EvPNNC_Class(Model):
         csv_logger = CSVLogger('results/metrics_' + str(generation) + '.csv', append=True)
 
         self.modelHistory = self.model.fit(self.X_train, self.y_train, batch_size=self.batch_size, epochs=self.epochs,
-                                           verbose=1, shuffle=True, callbacks=[early_stopping, csv_logger],
+                                           verbose=1, shuffle=True, callbacks=[csv_logger],
                                            validation_data=(self.X_test, self.y_test))
 
     # test() function: responsible for the testing phase within the learning model of EVP_NNC
