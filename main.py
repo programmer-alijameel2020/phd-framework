@@ -4,8 +4,10 @@ import matplotlib
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+from sklearn.utils import resample
 from sklearn.model_selection import train_test_split
 
+from EvPNNC.preprocessor import preprocessor
 # A programmatic implementation for the PHD project: A NeuroEvolution Network for Anomaly Detection in Computer Network
 # The system programming is distributed over multiple classes where each class provides a particular service
 # Copyrights: Ali Jameel Hashim
@@ -115,6 +117,7 @@ if __name__ == '__main__':
     print(dataLoss)
     """
 
+    """
     # Use the genetic neural network (use genetic algorithm for convolutional neural network)
     # ClassName(population size, mutation rate, generations)
 
@@ -147,3 +150,78 @@ if __name__ == '__main__':
     # EVP_NNC.netAdaptation()
     # Net structure adjustment
     # EVP_NNC.netAdjustment()
+    """
+
+    """
+    i = 10
+    for generation in range(i):
+        dataContent = 'results/metrics_' + str(generation) + '.csv'
+        columnName1 = 'accuracy'
+        columnName2 = 'f1_m'
+        columnName3 = 'loss'
+        columnName4 = 'meanSquaredError'
+        columnName5 = 'precision_m'
+        columnName6 = 'recall_m'
+
+        columnName7 = 'val_accuracy'
+        columnName8 = 'val_f1_m'
+        columnName9 = 'val_loss'
+        columnName10 = 'val_meanSquaredError'
+        columnName11 = 'val_precision_m'
+        columnName12 = 'val_recall_m'
+
+        data = pd.read_csv(dataContent, usecols=[columnName12])
+        plt.plot(data, label="validation F1 Score (%)", alpha=.6,
+                 marker="s", color="#1A5F7A", markersize=4)
+        plt.plot(data, label="Validation recall score (%)", alpha=.6,
+                 marker="s", color="black", markersize=4)
+
+        plt.legend(loc='best')
+
+        # plt.plot(reconstructions_a[0], label="predictions for anomaly data", marker=matplotlib.markers.CARETUPBASE)
+        plt.title("Validation recall score for generation  ("+str(generation)+")")
+        # plt.savefig('results/figures/accuracy_'+str(generation)+'.pdf')
+        plt.show()
+    
+    """
+    dataset_path = 'storage/dataset/02-15-2018.csv'
+    columnName = 'Tot Fwd Pkts'
+    columnName2 = 'Tot Bwd Pkts'
+    columnName3 = 'Flow Byts/s'
+    columnName4 = 'Fwd Pkt Len Mean'
+    columnName5 = 'Flow Pkts/s'
+    columnName6 = 'Flow IAT Mean'
+    columnName7 = 'Fwd Header Len'
+    columnName8 = 'Idle Mean'
+    """"" Dst Port,Protocol,Timestamp,Flow Duration,Tot Fwd Pkts,Tot Bwd Pkts,TotLen Fwd Pkts,TotLen Bwd Pkts,
+    Fwd Pkt Len Max,Fwd Pkt Len Min,Fwd Pkt Len Mean,Fwd Pkt Len Std,Bwd Pkt Len Max,Bwd Pkt Len Min,Bwd Pkt Len 
+    Mean,Bwd Pkt Len Std,Flow Byts/s,Flow Pkts/s,Flow IAT Mean,Flow IAT Std,Flow IAT Max,Flow IAT Min,Fwd IAT Tot,
+    Fwd IAT Mean,Fwd IAT Std,Fwd IAT Max,Fwd IAT Min,Bwd IAT Tot,Bwd IAT Mean,Bwd IAT Std,Bwd IAT Max,Bwd IAT Min,
+    Fwd PSH Flags,Bwd PSH Flags,Fwd URG Flags,Bwd URG Flags,Fwd Header Len,Bwd Header Len,Fwd Pkts/s,Bwd Pkts/s,
+    Pkt Len Min,Pkt Len Max,Pkt Len Mean,Pkt Len Std,Pkt Len Var,FIN Flag Cnt,SYN Flag Cnt,RST Flag Cnt,PSH Flag Cnt,
+    ACK Flag Cnt,URG Flag Cnt,CWE Flag Count,ECE Flag Cnt,Down/Up Ratio,Pkt Size Avg,Fwd Seg Size Avg,Bwd Seg Size 
+    Avg,Fwd Byts/b Avg,Fwd Pkts/b Avg,Fwd Blk Rate Avg,Bwd Byts/b Avg,Bwd Pkts/b Avg,Bwd Blk Rate Avg,Subflow Fwd 
+    Pkts,Subflow Fwd Byts,Subflow Bwd Pkts,Subflow Bwd Byts,Init Fwd Win Byts,Init Bwd Win Byts,Fwd Act Data Pkts,
+    Fwd Seg Size Min,Active Mean,Active Std,Active Max,Active Min,Idle Mean,Idle Std,Idle Max,Idle Min,Label 
+    
+    """
+    network_data = pd.read_csv(dataset_path)
+
+    data = pd.read_csv(dataset_path, usecols=[columnName])
+    data_1_resample = resample(data, n_samples=50000)
+    plt.ylabel("bit/second (bps)")
+
+    plt.plot(data_1_resample, label="Tot Fwd Pkts", alpha=.6,
+             marker="s", color="#1A5F7A", markersize=4)
+    plt.legend(loc='best')
+
+    # plt.plot(reconstructions_a[0], label="predictions for anomaly data", marker=matplotlib.markers.CARETUPBASE)
+    plt.title("Total packet forward of the data stream")
+    # plt.savefig('results/figures/accuracy_'+str(generation)+'.pdf')
+    plt.show()
+
+
+
+
+
+
