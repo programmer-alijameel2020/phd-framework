@@ -223,10 +223,31 @@ if __name__ == '__main__':
     
     
     """
+    dataset_path = 'TotalBwdPkts.csv'
 
-    dataset_path = 'storage/dataset/02-15-2018.csv'
-    columnName = 'Flow Pkts/s'
-    data = pd.read_csv(dataset_path, usecols=[columnName])
-    data.to_csv('FlowPkts.csv')
+    epochs = 1
+    batch_size = 32
+    stopping_patience = 3
+    # initialize the evolutionary algorithm parameters
+    POPULATION_SIZE = 1  # population size
+    MIN_DEPTH = 2  # minimal initial random tree depth
+    MAX_DEPTH = 5  # maximal initial random tree depth
+    GENERATIONS = 1  # maximal number of generations to run evolution
+    TOURNAMENT_SIZE = 5  # size of tournament for tournament selection
+    CROSSOVER_RATE = 0.8  # crossover rate
+    PROB_MUTATION = 0.2  # per-node mutation probability
 
-
+    EVP_NNC = EvPNNC_Class()
+    # Initialize the model parameters
+    EVP_NNC.parameterInitialization(dataset=dataset_path, epochs=epochs, population_size=POPULATION_SIZE,
+                                    mutation_rate=PROB_MUTATION, generations=GENERATIONS, batch_size=batch_size,
+                                    stopping_patience=stopping_patience)
+    EVP_NNC.create_population()
+    # Run the model
+    EVP_NNC.run_evolution()
+    metricDataset = 'metrics.csv'
+    EVP_NNC.averageResultsCalculater(metricDataset)
+    # network adaptation
+    # EVP_NNC.netAdaptation()
+    # Net structure adjustment
+    # EVP_NNC.netAdjustment()

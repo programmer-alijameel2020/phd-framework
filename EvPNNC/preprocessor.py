@@ -3,6 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 from keras.utils import to_categorical
+from sklearn.model_selection import train_test_split
 from sklearn.utils import resample
 from sklearn.preprocessing import LabelEncoder
 
@@ -141,6 +142,13 @@ class preprocessor:
         X_train = X_train.reshape(len(X_train), X_train.shape[1], 1)
         X_test = X_test.reshape(len(X_test), X_test.shape[1], 1)
         X_train.shape, X_test.shape
+        return X_train, y_train, X_test, y_test
+
+    def single_data_preprocessor(self, dataset_path, number_of_classes):
+        # check the available data
+        network_data = pd.read_csv(dataset_path)
+        X_train, X_test, y_train, y_test = train_test_split(network_data.values, network_data.values[:, 0:1],
+                                                            test_size=0.2, random_state=111)
         return X_train, y_train, X_test, y_test
 
     def convertCsvToPickles(self, path_of_csv, name):

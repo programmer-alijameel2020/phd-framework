@@ -127,8 +127,9 @@ class EvPNNC_Class(Model):
     def parameterInitialization(self, dataset, epochs, population_size, mutation_rate, batch_size,
                                 stopping_patience=2, generations=50):
         PreProcessorClass = preprocessor()
-        number_of_classes = 8
-        X_train, y_train, X_test, y_test = PreProcessorClass.data_preprocessor(dataset, number_of_classes)
+        number_of_classes = 3
+        # X_train, y_train, X_test, y_test = PreProcessorClass.data_preprocessor(dataset, number_of_classes)
+        X_train, y_train, X_test, y_test = PreProcessorClass.single_data_preprocessor(dataset, number_of_classes)
 
         self.dataset = dataset
         self.epochs = epochs
