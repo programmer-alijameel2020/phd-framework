@@ -182,9 +182,9 @@ if __name__ == '__main__':
         plt.title("Validation recall score for generation  ("+str(generation)+")")
         # plt.savefig('results/figures/accuracy_'+str(generation)+'.pdf')
         plt.show()
-    
-    """
-    dataset_path = 'storage/dataset/02-15-2018.csv'
+        
+        
+            dataset_path = 'storage/dataset/02-15-2018.csv'
     columnName = 'Tot Fwd Pkts'
     columnName2 = 'Tot Bwd Pkts'
     columnName3 = 'Flow Byts/s'
@@ -193,7 +193,8 @@ if __name__ == '__main__':
     columnName6 = 'Flow IAT Mean'
     columnName7 = 'Fwd Header Len'
     columnName8 = 'Idle Mean'
-    """"" Dst Port,Protocol,Timestamp,Flow Duration,Tot Fwd Pkts,Tot Bwd Pkts,TotLen Fwd Pkts,TotLen Bwd Pkts,
+
+    Dst Port,Protocol,Timestamp,Flow Duration,Tot Fwd Pkts,Tot Bwd Pkts,TotLen Fwd Pkts,TotLen Bwd Pkts,
     Fwd Pkt Len Max,Fwd Pkt Len Min,Fwd Pkt Len Mean,Fwd Pkt Len Std,Bwd Pkt Len Max,Bwd Pkt Len Min,Bwd Pkt Len 
     Mean,Bwd Pkt Len Std,Flow Byts/s,Flow Pkts/s,Flow IAT Mean,Flow IAT Std,Flow IAT Max,Flow IAT Min,Fwd IAT Tot,
     Fwd IAT Mean,Fwd IAT Std,Fwd IAT Max,Fwd IAT Min,Bwd IAT Tot,Bwd IAT Mean,Bwd IAT Std,Bwd IAT Max,Bwd IAT Min,
@@ -204,24 +205,28 @@ if __name__ == '__main__':
     Pkts,Subflow Fwd Byts,Subflow Bwd Pkts,Subflow Bwd Byts,Init Fwd Win Byts,Init Bwd Win Byts,Fwd Act Data Pkts,
     Fwd Seg Size Min,Active Mean,Active Std,Active Max,Active Min,Idle Mean,Idle Std,Idle Max,Idle Min,Label 
     
-    """
+    
     network_data = pd.read_csv(dataset_path)
 
     data = pd.read_csv(dataset_path, usecols=[columnName])
-    data_1_resample = resample(data, n_samples=50000)
-    plt.ylabel("bit/second (bps)")
+    data_1_resample = data.head(100000)
+    plt.ylabel("Packet/second")
 
     plt.plot(data_1_resample, label="Tot Fwd Pkts", alpha=.6,
              marker="s", color="#1A5F7A", markersize=4)
     plt.legend(loc='best')
 
     # plt.plot(reconstructions_a[0], label="predictions for anomaly data", marker=matplotlib.markers.CARETUPBASE)
-    plt.title("Total packet forward of the data stream")
+    plt.title("Total forward packets")
     # plt.savefig('results/figures/accuracy_'+str(generation)+'.pdf')
     plt.show()
+    
+    
+    """
 
-
-
-
+    dataset_path = 'storage/dataset/02-15-2018.csv'
+    columnName = 'Flow Pkts/s'
+    data = pd.read_csv(dataset_path, usecols=[columnName])
+    data.to_csv('FlowPkts.csv')
 
 

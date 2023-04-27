@@ -56,6 +56,7 @@ class EvPNNC_Class(Model):
         self.population = None
         self.acc = None
         self.norm_acc = None
+        self.threshold = None
 
     def return_acc_history(self):
         return self.acc_history
@@ -90,6 +91,22 @@ class EvPNNC_Class(Model):
         self.loss_history.append(loss)
         self.MSE_history.append(MSE)
         return acc
+
+    # prediction function that makes prediction to the current model for detecting anomalies
+    def predict(self):
+        # Get train MAE loss
+        x_train_pred = self.model.predict(self.X_train)
+        train_mae_loss = np.mean(np.abs(x_train_pred - self.X_train), axis=1)
+        self.threshold = np.max(train_mae_loss)
+
+        # Get test MAE loss.
+        x_test_pred = self.model.predict(self.X_test)
+        test_mae_loss = np.mean(np.abs(x_test_pred - self.X_test), axis=1)
+        test_mae_loss = test_mae_loss.reshape((-1))
+
+        anomalies = test_mae_loss > self.threshold
+
+        return x_train_pred, train_mae_loss, x_test_pred, test_mae_loss, anomalies
 
     def load_layer_weights(self, weights):
         self.model.set_weights(weights)
@@ -217,6 +234,10 @@ class EvPNNC_Class(Model):
         epochs = range(1, len(history['loss']) + 1)
         acc = history['accuracy']
         loss = history['loss']
+
+        x_train_pred, train_mae_loss, x_test_pred, test_mae_loss, anomalies = self.predict()
+        print(anomalies)
+
         # val_acc = history['val_accuracy']
         # val_loss = history['val_loss']
 
@@ -253,6 +274,7 @@ class EvPNNC_Class(Model):
         self.train()
         self.test()
         self.model.summary()
+
 
     def netAdjustment(self):
         # get the current structure
