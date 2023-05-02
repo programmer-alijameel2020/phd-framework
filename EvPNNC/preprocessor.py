@@ -3,14 +3,19 @@ import os
 import numpy as np
 import pandas as pd
 from keras.utils import to_categorical
+from matplotlib import pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.utils import resample
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, StandardScaler, OneHotEncoder
+import seaborn as sns
+import warnings
+
+sns.set(style='dark')
+warnings.filterwarnings('ignore')
 
 
 class preprocessor:
     def data_preprocessor(self, dataset_path, number_of_classes):
-        # check the available data
 
         network_data = pd.read_csv(dataset_path)
         network_data.shape
@@ -19,7 +24,7 @@ class preprocessor:
         # print('Number of Rows (Samples): %s' % str((network_data.shape[0])))
         # print('Number of Columns (Features): %s' % str((network_data.shape[1])))
 
-        network_data.head(4)
+        network_data.head()
 
         # check the columns in data
         network_data.columns
@@ -53,8 +58,9 @@ class preprocessor:
         cleaned_data['Label'].unique()
         # check for encoded labels
         cleaned_data['Label'].value_counts()
+
         """
-            Shaping the data for the CNN
+            Shaping the data 
         """
         # make 3 seperate datasets for 3 feature labels
         data_1 = cleaned_data[cleaned_data['Label'] == 0]
@@ -108,8 +114,8 @@ class preprocessor:
           p.gca().add_artist(circle)
           plt.show()
         """
-        ## Making X & Y Variables
 
+        ## Making X & Y Variables
         test_dataset = train_dataset.sample(frac=0.1)
         target_train = train_dataset['Label']
         target_test = test_dataset['Label']
@@ -143,6 +149,137 @@ class preprocessor:
         X_test = X_test.reshape(len(X_test), X_test.shape[1], 1)
         X_train.shape, X_test.shape
         return X_train, y_train, X_test, y_test
+
+    def featureProcessing(self):
+        # Settings
+        pd.set_option('display.max_columns', None)
+        pd.set_option('display.max_rows', None)
+
+        df1 = pd.read_csv(
+            "storage/dataset/kaggle/Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv")  # ,nrows = 50000
+        df2 = pd.read_csv(
+            "storage/dataset/kaggle/Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv")
+        df3 = pd.read_csv(
+            "storage/dataset/kaggle/Friday-WorkingHours-Morning.pcap_ISCX.csv")
+
+        df5 = pd.read_csv(
+            "storage/dataset/kaggle/Thursday-WorkingHours-Afternoon-Infilteration.pcap_ISCX.csv")
+        df6 = pd.read_csv(
+            "storage/dataset/kaggle/Thursday-WorkingHours-Morning-WebAttacks.pcap_ISCX.csv")
+
+        df = pd.concat([df1, df2])
+        del df1, df2
+        df = pd.concat([df, df3])
+        del df3
+
+        df = pd.concat([df, df5])
+        del df5
+        df = pd.concat([df, df6])
+        del df6
+
+        data = df.copy()
+
+        data.info()
+        data[" Label"].value_counts()
+
+        # Check for missing data
+        print(f"Missing values: {data.isnull().sum().sum()}")
+
+        # Check for infinite values, replace with NAN so it is easy to remove them
+        data.replace([np.inf, -np.inf], np.nan, inplace=True)
+        print(f"Missing values: {data.isnull().sum().sum()}")
+
+        deleteCol = []
+        for column in data.columns:
+            if data[column].isnull().values.any():
+                deleteCol.append(column)
+        for column in deleteCol:
+            data.drop([column], axis=1, inplace=True)
+
+        deleteCol = []
+        for column in data.columns:
+            if data[column].isnull().values.any():
+                deleteCol.append(column)
+        for column in deleteCol:
+            data.drop([column], axis=1, inplace=True)
+
+        data[' Flow Duration'].unique()
+
+        for column in data.columns:
+            if data[column].dtype == np.int64:
+                maxVal = data[column].max()
+                if maxVal < 120:
+                    data[column] = data[column].astype(np.int8)
+                elif maxVal < 32767:
+                    data[column] = data[column].astype(np.int16)
+                else:
+                    data[column] = data[column].astype(np.int32)
+
+            if data[column].dtype == np.float64:
+                maxVal = data[column].max()
+                minVal = data[data[column] > 0][column]
+                if maxVal < 120 and minVal > 0.01:
+                    data[column] = data[column].astype(np.float16)
+                else:
+                    data[column] = data[column].astype(np.float32)
+        data.info()
+
+        benign = data[data[' Label'] == 'BENIGN'].sample(frac=0.1).reset_index(drop=True)
+        attack = data[data[' Label'] != 'BENIGN']
+        data = pd.concat([attack, benign])
+        data[' Label'].value_counts()
+
+        ddos = data[data[' Label'] == 'DDoS'].sample(frac=0.32).reset_index(drop=True)
+        attack = data[data[' Label'] != 'DDoS']
+        data = pd.concat([attack, ddos])
+        data[' Label'].value_counts()
+
+        PortScan = data[data[' Label'] == 'PortScan'].sample(frac=0.32).reset_index(drop=True)
+        attack = data[data[' Label'] != 'PortScan']
+        data = pd.concat([attack, PortScan])
+        data[' Label'].value_counts()
+
+        y = data[' Label']
+        X = data.drop([' Label'], axis=1)
+
+        bestfeatures = SelectKBest(score_func=f_classif, k=10)
+        fit = bestfeatures.fit(X, y)
+
+        dfscores = pd.DataFrame(fit.scores_)
+        dfcolumns = pd.DataFrame(X.columns)
+        # concat two dataframes for better visualization
+        featureScores = pd.concat([dfcolumns, dfscores], axis=1)
+        featureScores.columns = ['Specs', 'Score']  # naming the dataframe columns
+        print(featureScores.nlargest(30, 'Score'))  # print 10 best features
+
+        feature = pd.DataFrame()
+        n = len(featureScores['Specs'])
+        for i in featureScores.nlargest(n // 2, 'Score')['Specs']:
+            feature[i] = data[i]
+        feature[' Label'] = data[' Label']
+        feature.info()
+
+        fig = plt.figure(figsize=(40, 40))
+        sns.heatmap(feature.corr(), annot=True)
+        plt.show()
+
+        feature.drop([' Bwd Packet Length Mean'], axis=1, inplace=True)
+        feature.drop([' Avg Bwd Segment Size'], axis=1, inplace=True)
+        feature.drop(['Bwd Packet Length Max'], axis=1, inplace=True)
+        feature.drop([' Packet Length Std'], axis=1, inplace=True)
+        feature.drop([' Average Packet Size'], axis=1, inplace=True)
+        feature.drop([' Packet Length Mean'], axis=1, inplace=True)
+        feature.drop([' Max Packet Length'], axis=1, inplace=True)
+        feature.drop([' Packet Length Variance'], axis=1, inplace=True)
+        feature.drop([' Idle Max'], axis=1, inplace=True)
+        feature.drop([' Fwd IAT Max'], axis=1, inplace=True)
+        feature.drop([' Flow IAT Std'], axis=1, inplace=True)
+        feature.drop([' Idle Std'], axis=1, inplace=True)
+        feature.drop(['Idle Mean'], axis=1, inplace=True)
+
+        fig = plt.figure(figsize=(40, 40))
+        sns.heatmap(feature.corr(), annot=True)
+        plt.show()
 
     def single_data_preprocessor(self, dataset_path, number_of_classes):
         # check the available data

@@ -1,5 +1,6 @@
 # Evolutionary Programmed Neural Network Classifier (EvP-NNC)
 # by: Ali J. Hashim
+import sys
 
 import keras
 import numpy as np
@@ -13,7 +14,7 @@ from EvPNNC.EvaluationMetric import evaluationMetric
 from EvPNNC.preprocessor import preprocessor
 import seaborn as sns
 from EvPNNC.NeuralNetwork import modelConstruction, initializeLayerArray, adaptiveLayer, initParameters, parameters
-
+# np.set_printoptions(threshold=sys.maxsize)
 palette = sns.color_palette("rocket_r")
 
 
@@ -96,17 +97,15 @@ class EvPNNC_Class(Model):
     def predict(self):
         # Get train MAE loss
         x_train_pred = self.model.predict(self.X_train)
-        train_mae_loss = np.mean(np.abs(x_train_pred - self.X_train), axis=1)
-        self.threshold = np.max(train_mae_loss)
+        x_test_pred = self.model.predict(self.X_test)
+        # train_mae_loss = np.mean(np.abs(np.subtract(x_train_pred, self.X_train)), axis=1)
+        # self.threshold = np.max(train_mae_loss)
 
         # Get test MAE loss.
-        x_test_pred = self.model.predict(self.X_test)
-        test_mae_loss = np.mean(np.abs(x_test_pred - self.X_test), axis=1)
-        test_mae_loss = test_mae_loss.reshape((-1))
-
-        anomalies = test_mae_loss > self.threshold
-
-        return x_train_pred, train_mae_loss, x_test_pred, test_mae_loss, anomalies
+        # x_test_pred = self.model.predict(self.X_test)
+        # test_mae_loss = np.mean(np.abs(x_test_pred - self.X_test), axis=1)
+        # test_mae_loss = test_mae_loss.reshape((-1))
+        return x_train_pred, x_test_pred
 
     def load_layer_weights(self, weights):
         self.model.set_weights(weights)
@@ -127,9 +126,10 @@ class EvPNNC_Class(Model):
     def parameterInitialization(self, dataset, epochs, population_size, mutation_rate, batch_size,
                                 stopping_patience=2, generations=50):
         PreProcessorClass = preprocessor()
-        number_of_classes = 3
-        # X_train, y_train, X_test, y_test = PreProcessorClass.data_preprocessor(dataset, number_of_classes)
-        X_train, y_train, X_test, y_test = PreProcessorClass.single_data_preprocessor(dataset, number_of_classes)
+        number_of_classes = 4
+
+        X_train, y_train, X_test, y_test = PreProcessorClass.data_preprocessor(dataset, number_of_classes)
+        # X_train, y_train, X_test, y_test = PreProcessorClass.single_data_preprocessor(dataset, number_of_classes)
 
         self.dataset = dataset
         self.epochs = epochs
@@ -210,6 +210,7 @@ class EvPNNC_Class(Model):
         for episode in range(self.generations):
             self.clear_losses()
             self.runGeneticEncoding(episode)
+            # self.netAdaptation(episode)
             if episode != self.generations - 1:
                 self.normalize()
                 self.reproduction()
@@ -236,12 +237,6 @@ class EvPNNC_Class(Model):
         acc = history['accuracy']
         loss = history['loss']
 
-        x_train_pred, train_mae_loss, x_test_pred, test_mae_loss, anomalies = self.predict()
-        print(anomalies)
-
-        # val_acc = history['val_accuracy']
-        # val_loss = history['val_loss']
-
         # visualize training and val accuracy
         """"
         plt.figure(figsize=(10, 5))
@@ -261,7 +256,7 @@ class EvPNNC_Class(Model):
         print(PreProcessorClass.digitFloat(metrics['val_accuracy'].mean()))
         print(PreProcessorClass.digitFloat(metrics['meanSquaredError'].mean()))
 
-    def netAdaptation(self):
+    def netAdaptation(self, generation):
         # get the new structure
         newNetStructure = adaptiveLayer()
         # assign the model from the layer adaptation process
@@ -272,7 +267,7 @@ class EvPNNC_Class(Model):
                                     self.evaluationClass.recall_m, self.evaluationClass.meanSquaredError])
 
         # run the training and testing models
-        self.train()
+        self.train(generation)
         self.test()
         self.model.summary()
 

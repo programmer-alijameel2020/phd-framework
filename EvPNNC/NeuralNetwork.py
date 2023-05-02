@@ -13,7 +13,7 @@ parameters = {
     'filters': 64,
     'kernel_size': 6,
     'padding': 'same',
-    'input_shape': (2, 1),
+    'input_shape': (72, 1),
     'pool_size': 3,
     'strides': 2,
     'unit_1': 140,
@@ -23,6 +23,7 @@ parameters = {
     'unit_5': 8,
     'unit_6': 2,
     'unit_7': 1,
+    'unit_out': 4,
     'activation': ['sigmoid', 'relu', 'softmax']
 }
 
@@ -131,7 +132,7 @@ def initializeLayerArray():
     Dense3 = layers[4](parameters['unit_3'], activation=parameters['activation'][0])
     Dense4 = layers[4](parameters['unit_4'], activation=parameters['activation'][0])
 
-    Dense_out = layers[4](parameters['unit_7'], activation=parameters['activation'][2])
+    Dense_out = layers[4](parameters['unit_out'], activation=parameters['activation'][2])
 
     layerArray = [ConvLayer, BatchNormalizationLayer, MXPoolingLayer, FlattenLayer, Dense1, Dense2, Dense3, Dense4,
                     Dense_out]
