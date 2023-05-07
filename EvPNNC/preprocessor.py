@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from keras.utils import to_categorical
 from matplotlib import pyplot as plt
+from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.model_selection import train_test_split
 from sklearn.utils import resample
 from sklearn.preprocessing import LabelEncoder, StandardScaler, OneHotEncoder
