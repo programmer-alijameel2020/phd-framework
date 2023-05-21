@@ -10,6 +10,7 @@ from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.utils import resample
 from sklearn.model_selection import train_test_split
 
+from AutoEncoder.AutoEncoderNetwork import runAutoEncoder
 from EvPNNC.preprocessor import preprocessor
 # A programmatic implementation for the PHD project: A NeuroEvolution Network for Anomaly Detection in Computer Network
 # The system programming is distributed over multiple classes where each class provides a particular service
@@ -90,6 +91,7 @@ if __name__ == '__main__':
     
     """
     """
+    
     # Running the autoEncoder with configurations
     dataset = 'storage/dataset/output.txt'
     # the epochs are increased according to the increasing factor
@@ -110,7 +112,8 @@ if __name__ == '__main__':
                                     batch_size=batch_size, stopping_patience=stopping_patience)
     EV_AE.create_population()
     EV_AE.run_evolution()
-    
+
+
     
     
     acc = [0.8765, 0.8795, 0.9432, 0.9422, 0.9422, 0.9422, 0.9576, 0.9576, 0.9576, 0.9762, 0.9762, 0.9762, 0.9852, 0.9852, 0.9882,  0.9826, 0.9826, 0.9826, 0.9876, 0.9876, 0.9882, 0.9876, 0.9876, 0.9876]
@@ -236,11 +239,7 @@ if __name__ == '__main__':
 
 
 
-
-
-
-
-
-
-
+dataset = pd.read_csv('storage/dataset/ecg.csv', header=None)
+epoches = 10
+runAutoEncoder(epoches, dataset)
 
