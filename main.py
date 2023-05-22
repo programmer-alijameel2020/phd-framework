@@ -17,7 +17,7 @@ from EvPNNC.preprocessor import preprocessor
 # Copyrights: Ali Jameel Hashim
 from Framework.NeuroEvolutionCNN import EvolutionaryCNN
 from Framework.NeuroEvolutionAE import EvolutionaryAutoEncoder
-from Framework.NeuroAE import EvolutionaryAutoEncoder
+from AutoEncoder.EvoAutoEncoder import EvolutionaryAutoEncoder
 from NeuralNetwork.SelfOrginizedMap import SOM
 from EvPNNC.EvClassifier import EvPNNC_Class
 import numpy as np # linear algebra
@@ -240,6 +240,24 @@ if __name__ == '__main__':
 
 
 dataset = pd.read_csv('storage/dataset/ecg.csv', header=None)
-epoches = 10
-runAutoEncoder(epoches, dataset)
+# runAutoEncoder(epoches, dataset, stopping_patience, generation)
+# Running the autoEncoder with configurations
+# dataset = 'storage/dataset/ecg.csv'
+# the epochs are increased according to the increasing factor
+results_iteration = 1
+results_increase_factor = 5
+epochs = 50
+batch_size = 25
+stopping_patience = 3
 
+# initialize the evolutionary algorithm parameters
+population_size = 2
+mutation_rate = 0.05
+NO_generations = 25
+
+EV_AE = EvolutionaryAutoEncoder(model_iteration=epochs
+                                , population_size=population_size, mutation_rate=mutation_rate,
+                                generations=NO_generations, dataset=dataset, epochs=epochs,
+                                batch_size=batch_size, stopping_patience=stopping_patience)
+EV_AE.create_population()
+EV_AE.run_evolution()

@@ -117,15 +117,14 @@ def runAutoEncoder(epoches, dataset):
     encoded_imgs = autoencoder.encoder(normal_test_data).numpy()
     decoded_imgs = autoencoder.decoder(encoded_imgs).numpy()
 
-    for i in range(0, 3):
-        plt.figure(figsize=(10, 8))
-        sns.set(font_scale=2)
-        sns.set_style("white")
-        plt.plot(normal_test_data[i], 'black', linewidth=2)
-        plt.plot(decoded_imgs[i], 'red', linewidth=2)
-        plt.fill_between(np.arange(140), decoded_imgs[i], normal_test_data[i], color='lightcoral')
-        plt.legend(labels=["Input", "Reconstruction", "Error"])
-        plt.show()
+    plt.figure(figsize=(10, 8))
+    sns.set(font_scale=2)
+    sns.set_style("white")
+    plt.plot(normal_test_data[0], 'black', linewidth=2)
+    plt.plot(decoded_imgs[0], 'red', linewidth=2)
+    plt.fill_between(np.arange(140), decoded_imgs[0], normal_test_data[0], color='lightcoral')
+    plt.legend(labels=["Input", "Reconstruction", "Error"])
+    plt.show()
 
     encoded_imgs_normal = pd.DataFrame(encoded_imgs)
     encoded_imgs_normal['label'] = 1
@@ -133,15 +132,14 @@ def runAutoEncoder(epoches, dataset):
     encoded_imgs = autoencoder.encoder(anomalous_test_data).numpy()
     decoded_imgs = autoencoder.decoder(encoded_imgs).numpy()
 
-    for i in range(0, 3):
-        plt.figure(figsize=(10, 8))
-        sns.set(font_scale=2)
-        sns.set_style("white")
-        plt.plot(anomalous_test_data[i], 'black', linewidth=2)
-        plt.plot(decoded_imgs[i], 'red', linewidth=2)
-        plt.fill_between(np.arange(140), decoded_imgs[i], anomalous_test_data[i], color='lightcoral')
-        plt.legend(labels=["Input", "Reconstruction", "Error"])
-        plt.show()
+    plt.figure(figsize=(10, 8))
+    sns.set(font_scale=2)
+    sns.set_style("white")
+    plt.plot(anomalous_test_data[0], 'black', linewidth=2)
+    plt.plot(decoded_imgs[0], 'red', linewidth=2)
+    plt.fill_between(np.arange(140), decoded_imgs[0], anomalous_test_data[0], color='lightcoral')
+    plt.legend(labels=["Input", "Reconstruction", "Error"])
+    plt.show()
 
     encoded_imgs_abnormal = pd.DataFrame(encoded_imgs)
     encoded_imgs_abnormal['label'] = 0
