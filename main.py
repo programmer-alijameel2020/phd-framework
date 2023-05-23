@@ -237,8 +237,6 @@ if __name__ == '__main__':
     """
 
 
-
-
 dataset = pd.read_csv('storage/dataset/ecg.csv', header=None)
 # runAutoEncoder(epoches, dataset, stopping_patience, generation)
 # Running the autoEncoder with configurations

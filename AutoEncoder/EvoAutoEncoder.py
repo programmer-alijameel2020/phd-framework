@@ -12,7 +12,9 @@ from keras.callbacks import EarlyStopping, CSVLogger
 import seaborn as sns
 from keras.models import Sequential, Model
 from keras.layers import Dense
+from keras.utils import plot_model
 
+from AutoEncoder.NeuralNetwork import initializeLayerArray, modelConstruction
 from Framework.EvaluationMetric import evaluationMetric
 
 palette = sns.color_palette("rocket_r")
@@ -47,8 +49,6 @@ def print_stats(predictions, labels):
     print("Recall = {}".format(recall_score(labels, predictions)))
 
 
-
-
 class Autoencoder(Model):
     def __init__(self):
         super(Autoencoder, self).__init__()
@@ -57,6 +57,7 @@ class Autoencoder(Model):
         encoder moder responsible for encoding the signal into simplified representation and the decoder moder 
         responsible for the reconstruction of the decoder signal 
         """
+
         encoder_model = Sequential()
         encoder_model.add(Dense(140, activation='relu'))
         encoder_model.add(Dense(64, activation='relu'))
@@ -199,16 +200,21 @@ class Autoencoder(Model):
                                   shuffle=True,
                                   callbacks=[early_stopping, csv_logger])
 
+
+
+        """
         plt.figure(figsize=(10, 8))
         sns.set(font_scale=2)
         sns.set_style("white")
         plt.plot(history.history["loss"], label="Training Loss", linewidth=3.0)
         plt.plot(history.history["val_loss"], label="Validation Loss", linewidth=3.0)
         plt.legend()
+        """
 
         encoded_imgs = autoencoder.encoder(normal_test_data).numpy()
         decoded_imgs = autoencoder.decoder(encoded_imgs).numpy()
 
+        """
         plt.figure(figsize=(10, 8))
         sns.set(font_scale=2)
         sns.set_style("white")
@@ -217,6 +223,7 @@ class Autoencoder(Model):
         plt.fill_between(np.arange(140), decoded_imgs[0], normal_test_data[0], color='lightcoral')
         plt.legend(labels=["Input", "Reconstruction", "Error"])
         plt.show()
+        """
 
         encoded_imgs_normal = pd.DataFrame(encoded_imgs)
         encoded_imgs_normal['label'] = 1
@@ -224,6 +231,7 @@ class Autoencoder(Model):
         encoded_imgs = autoencoder.encoder(anomalous_test_data).numpy()
         decoded_imgs = autoencoder.decoder(encoded_imgs).numpy()
 
+        """
         plt.figure(figsize=(10, 8))
         sns.set(font_scale=2)
         sns.set_style("white")
@@ -232,6 +240,7 @@ class Autoencoder(Model):
         plt.fill_between(np.arange(140), decoded_imgs[0], anomalous_test_data[0], color='lightcoral')
         plt.legend(labels=["Input", "Reconstruction", "Error"])
         plt.show()
+        """
 
         encoded_imgs_abnormal = pd.DataFrame(encoded_imgs)
         encoded_imgs_abnormal['label'] = 0
@@ -280,6 +289,30 @@ class Autoencoder(Model):
         reconstructions = autoencoder.predict(anomalous_test_data)
         test_loss = tf.keras.losses.mae(reconstructions, anomalous_test_data)
 
+        # Training anomalous
+        plt.plot(reconstructions[0], label="predictions for abnormality in the training phase", alpha=.6,
+                 marker=matplotlib.markers.CARETUPBASE, color="black")
+        plt.plot(anomalous_train_data[0], label="Reconstruction test data", alpha=.6, color="red", marker="s")
+        plt.legend(loc='best')
+        plt.fill_between(np.arange(140), decoded_imgs[0], anomalous_train_data[0], color='#FFCDD2')
+        # plt.plot(reconstructions_a[0], label="predictions for anomaly data", marker=matplotlib.markers.CARETUPBASE)
+        plt.title("Prediction signal of the AEVAE for (" + str(epochs) + ") epochs with generation (" + str(
+            generation) + ")")
+        plt.legend(labels=["Input", "Reconstruction", "Error"])
+        plt.show()
+
+        # Error Between
+        plt.plot(reconstructions[0], label="predictions for abnormality in the testing phase", alpha=.6,
+                 marker=matplotlib.markers.CARETUPBASE, color="black")
+        plt.plot(anomalous_test_data[0], label="Reconstruction test data", alpha=.6, color="red", marker="s")
+        plt.legend(loc='best')
+        plt.fill_between(np.arange(140), decoded_imgs[0], anomalous_test_data[0], color='#FFCDD2')
+        # plt.plot(reconstructions_a[0], label="predictions for anomaly data", marker=matplotlib.markers.CARETUPBASE)
+        plt.title("Prediction signal of the AEVAE for (" + str(epochs) + ") epochs with generation (" + str(
+            generation) + ")")
+        plt.legend(labels=["Input", "Reconstruction", "Error"])
+        plt.show()
+
         plt.figure(figsize=(12, 8))
         sns.set(font_scale=2)
         sns.set_style("white")
@@ -326,7 +359,12 @@ class Autoencoder(Model):
         sns.heatmap(confusion_matrix, cmap='gist_yarg_r', annot=True, fmt='d')
         plt.show()
 
+        plot_model(autoencoder, to_file='model.png', show_shapes=True)
 
+    def runModifications(self, new_layer):
+        index = 4
+        # Add the remaining layers from the original model
+        self.encoder.add(new_layer)
 
 
 class EvolutionaryAutoEncoder:
@@ -401,6 +439,13 @@ class EvolutionaryAutoEncoder:
             for j in range(len(self.children_population_weights)):
                 self.population[i].load_layer_weights(self.children_population_weights[j])
 
+    # Modifies the AE structure
+    def modification(self):
+        new_layer = Dense(32, activation='relu')
+        for member in self.population:
+            member.runModifications(new_layer)
+
+    # The main function for running the evolution
     def run_evolution(self):
         for episode in range(self.generations):
             self.clear_losses()
@@ -409,6 +454,7 @@ class EvolutionaryAutoEncoder:
                 self.normalize()
                 # self.reproduction()
                 # self.mutate()
+                self.modification()
             else:
                 pass
 
