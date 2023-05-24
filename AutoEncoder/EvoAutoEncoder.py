@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
 import tensorflow as tf
-from keras.callbacks import EarlyStopping, CSVLogger
+from keras.callbacks import EarlyStopping, CSVLogger, TensorBoard
 import seaborn as sns
 from keras.models import Sequential, Model
 from keras.layers import Dense
@@ -57,7 +57,71 @@ class Autoencoder(Model):
         encoder moder responsible for encoding the signal into simplified representation and the decoder moder 
         responsible for the reconstruction of the decoder signal 
         """
+        # get the layer information within current autoEncoder implementation
 
+        """"
+        encoder_model = Sequential()
+        encoder_model.add(Dense(140, activation='relu'))
+        encoder_model.add(Dense(64, activation='relu'))
+        encoder_model.add(Dense(32, activation='relu'))
+        encoder_model.add(Dense(16, activation='relu'))
+        encoder_model.add(Dense(8, activation='relu'))
+
+        decoder_model = Sequential()
+        decoder_model.add(Dense(16, activation='relu'))
+        decoder_model.add(Dense(32, activation='relu'))
+        decoder_model.add(Dense(64, activation='relu'))
+        decoder_model.add(Dense(140, activation='sigmoid'))
+        """
+
+        # General hyperparameters
+        self.parameters = {
+            'filters': 64,
+            'kernel_size': 6,
+            'padding': 'same',
+            'input_shape': (72, 1),
+            'pool_size': 3,
+            'strides': 2,
+            'unit_1': 140,
+            'unit_2': 64,
+            'unit_3': 32,
+            'unit_4': 16,
+            'unit_5': 8,
+            'unit_6': 2,
+            'unit_7': 1,
+            'unit_out': 8,
+            'activation': ['sigmoid', 'relu', 'softmax']
+        }
+
+        self.encoderLayerStack = []
+        self.decoderLayerStack = []
+        self.adaptiveLayerStatus = None
+
+        # Set the layer stack initialization and Build the autoEncoder model
+        encoder_model, decoder_model = self.layerStackInit()
+
+        self.model = None
+        self.encoder = encoder_model
+        self.decoder = decoder_model
+
+        # Performance metrics
+        self.acc_history = []
+        self.f1_history = []
+        self.precision_history = []
+        self.rec_history = []
+        self.loss_history = []
+        self.stopping_patience = None
+        self.modelPool = []
+        self.generations = None
+        self.autoencoder = None
+
+
+    def call(self, x):
+        encoded = self.encoder(x)
+        decoded = self.decoder(encoded)
+        return decoded
+
+    def layerStackInit(self):
         encoder_model = Sequential()
         encoder_model.add(Dense(140, activation='relu'))
         encoder_model.add(Dense(64, activation='relu'))
@@ -71,34 +135,32 @@ class Autoencoder(Model):
         decoder_model.add(Dense(64, activation='relu'))
         decoder_model.add(Dense(140, activation='sigmoid'))
 
-        self.encoder = encoder_model
-        self.decoder = decoder_model
-        # Performance metrics
-        self.acc_history = []
-        self.f1_history = []
-        self.precision_history = []
-        self.rec_history = []
-        self.loss_history = []
+        print("Adaption state:", self.adaptiveLayerStatus)
 
-    def call(self, x):
-        encoded = self.encoder(x)
-        decoded = self.decoder(encoded)
-        return decoded
+        if self.adaptiveLayerStatus is True:
+            modifiedEncoder, modifiedDecoder = self.runModifications(encoder_model, decoder_model)
+            return modifiedEncoder, modifiedDecoder
+        else:
+            return encoder_model, decoder_model
+
+
 
     def return_acc_history(self):
         return self.acc_history
 
     def get_layer_weight(self, i):
-        return self.encoder.layers[i].get_weights()
+        return self.encoder.layers[i].get_weights(), self.decoder.layers[i].get_weights()
 
     def set_layer_weight(self, i, weight):
         self.encoder.layers[i].set_weights(weight)
+        self.decoder.layers[i].set_weights(weight)
 
     def load_layer_weights(self, weights):
         self.encoder.set_weights(weights)
+        self.decoder.set_weights(weights)
 
     def give_weights(self):
-        return self.encoder.get_weights()
+        return self.encoder.get_weights(), self.decoder.get_weights()
 
     def weight_len(self):
         i = 0
@@ -125,7 +187,8 @@ class Autoencoder(Model):
         dataframe.head().style.set_properties(**{'background-color': 'black',
                                                  'color': 'white',
                                                  'border-color': 'white'})
-
+        self.generations = generation
+        self.stopping_patience = stopping_patience
         colors = ['gold', 'mediumturquoise']
         labels = ['Normal', 'Abnormal']
         values = dataframe[140].value_counts() / dataframe[140].shape[0]
@@ -178,13 +241,12 @@ class Autoencoder(Model):
         plt.show()
         
         """
-
         # Start autoEncoder programming
-        autoencoder = Autoencoder()
 
-        evaluationClass = evaluationMetric()
+        self.autoencoder = Autoencoder()
+
         # Compiling the model
-        autoencoder.compile(optimizer='adam', loss='mae')
+        self.autoencoder.compile(optimizer='adam', loss='mae')
 
         # creating an early_stopping
         early_stopping = EarlyStopping(monitor='val_loss',
@@ -193,12 +255,15 @@ class Autoencoder(Model):
 
         csv_logger = CSVLogger('results/metrics_' + str(generation) + '.csv', append=True)
 
-        history = autoencoder.fit(normal_train_data, normal_train_data,
-                                  epochs=epochs,
-                                  batch_size=batch_size,
-                                  validation_data=(test_data, test_data),
-                                  shuffle=True,
-                                  callbacks=[early_stopping, csv_logger])
+        tensorboard_callback = TensorBoard(log_dir='logs')
+
+        history = self.autoencoder.fit(normal_train_data, normal_train_data,
+                                       epochs=epochs,
+                                       batch_size=batch_size,
+                                       validation_data=(test_data, test_data),
+                                       shuffle=True,
+                                       callbacks=[early_stopping, csv_logger, tensorboard_callback])
+
 
 
 
@@ -211,8 +276,8 @@ class Autoencoder(Model):
         plt.legend()
         """
 
-        encoded_imgs = autoencoder.encoder(normal_test_data).numpy()
-        decoded_imgs = autoencoder.decoder(encoded_imgs).numpy()
+        encoded_imgs = self.autoencoder.encoder(normal_test_data).numpy()
+        decoded_imgs = self.autoencoder.decoder(encoded_imgs).numpy()
 
         """
         plt.figure(figsize=(10, 8))
@@ -228,8 +293,8 @@ class Autoencoder(Model):
         encoded_imgs_normal = pd.DataFrame(encoded_imgs)
         encoded_imgs_normal['label'] = 1
 
-        encoded_imgs = autoencoder.encoder(anomalous_test_data).numpy()
-        decoded_imgs = autoencoder.decoder(encoded_imgs).numpy()
+        encoded_imgs = self.autoencoder.encoder(anomalous_test_data).numpy()
+        decoded_imgs = self.autoencoder.decoder(encoded_imgs).numpy()
 
         """
         plt.figure(figsize=(10, 8))
@@ -248,7 +313,7 @@ class Autoencoder(Model):
         all_encoded = pd.concat([encoded_imgs_normal, encoded_imgs_abnormal])
         mapper = umap.UMAP().fit(all_encoded.iloc[:, :8])
 
-        reconstructions = autoencoder.predict(normal_train_data)
+        reconstructions = self.autoencoder.predict(normal_train_data)
         train_loss = tf.keras.losses.mae(reconstructions, normal_train_data)
         np.mean(train_loss)
 
@@ -286,7 +351,7 @@ class Autoencoder(Model):
         sns.despine()
         plt.show()
 
-        reconstructions = autoencoder.predict(anomalous_test_data)
+        reconstructions = self.autoencoder.predict(anomalous_test_data)
         test_loss = tf.keras.losses.mae(reconstructions, anomalous_test_data)
 
         # Training anomalous
@@ -326,6 +391,8 @@ class Autoencoder(Model):
         plt.xlabel("loss")
         plt.ylabel("No of examples")
         sns.despine()
+        plt.title("Testing loss the AEVAE for (" + str(epochs) + ") epochs with generation (" + str(
+            generation) + ")")
         plt.show()
 
         plt.figure(figsize=(12, 8))
@@ -347,9 +414,11 @@ class Autoencoder(Model):
         plt.xlabel("loss")
         plt.ylabel("No of examples")
         sns.despine()
+        plt.title("Training loss the AEVAE for (" + str(epochs) + ") epochs with generation (" + str(
+            generation) + ")")
         plt.show()
 
-        preds = predict(autoencoder, test_data, threshold)
+        preds = predict(self.autoencoder, test_data, threshold)
         print_stats(preds, test_labels)
 
         confusion_matrix = get_clf_eval(test_labels, preds, preds)
@@ -359,12 +428,50 @@ class Autoencoder(Model):
         sns.heatmap(confusion_matrix, cmap='gist_yarg_r', annot=True, fmt='d')
         plt.show()
 
-        plot_model(autoencoder, to_file='model.png', show_shapes=True)
+        # Build the models
+        self.encoder.build(input_shape=(None, 140))
+        self.decoder.build(input_shape=(None, 8))
 
-    def runModifications(self, new_layer):
-        index = 4
-        # Add the remaining layers from the original model
-        self.encoder.add(new_layer)
+        self.encoder.summary()
+        self.decoder.summary()
+        plot_model(self.encoder, to_file='model_plot.png', show_shapes=True, show_layer_names=True, dpi=96)
+
+    def modifyNetStructure(self):
+        self.adaptiveLayerStatus = True
+        self.runModifications(self.encoder, self.decoder)
+
+    def runModifications(self, encoderModel, decoderModel):
+        new_layer = Dense(32, activation='relu')
+        # define the insertion point
+        InsertionPoint = 2
+        # Insert the layer at the exact insertion point
+        modifiedEncoder = encoderModel.layers.insert(InsertionPoint, new_layer)
+        modifiedDecoder = decoderModel.layers.insert(InsertionPoint, new_layer)
+        self.modelPool.append((modifiedEncoder, modifiedDecoder))
+        return modifiedEncoder, modifiedDecoder
+
+        """
+        # Check if the model pool is not empty  
+        if len(self.modelPool < 0):
+            # Save the intial structure of the autoEncoder into the model pool
+            self.modelPool.append((self.encoder, self.decoder))
+        else:
+            # Takes the first last structure of the pool and modify the structure
+            lastModel = self.modelPool[-1]
+
+            # Get the encoder/decoder information
+            lastModelEncoder = lastModel[0]
+            lastModelDecoder = lastModel[1]
+
+            # define the insertion point
+            InsertionPoint = 4
+
+            # Insert the layer at the exact insertion point
+            modifiedEncoder = lastModelEncoder.insert(InsertionPoint, new_layer)
+            modifiedDecoder = lastModelDecoder.insert(InsertionPoint, new_layer)
+
+            # Modify the model pool using the newly generated layers
+            """
 
 
 class EvolutionaryAutoEncoder:
@@ -441,9 +548,8 @@ class EvolutionaryAutoEncoder:
 
     # Modifies the AE structure
     def modification(self):
-        new_layer = Dense(32, activation='relu')
         for member in self.population:
-            member.runModifications(new_layer)
+            member.modifyNetStructure()
 
     # The main function for running the evolution
     def run_evolution(self):
@@ -455,6 +561,8 @@ class EvolutionaryAutoEncoder:
                 # self.reproduction()
                 # self.mutate()
                 self.modification()
+
+
             else:
                 pass
 

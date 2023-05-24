@@ -17,7 +17,6 @@ from EvPNNC.preprocessor import preprocessor
 # Copyrights: Ali Jameel Hashim
 from Framework.NeuroEvolutionCNN import EvolutionaryCNN
 from Framework.NeuroEvolutionAE import EvolutionaryAutoEncoder
-from AutoEncoder.EvoAutoEncoder import EvolutionaryAutoEncoder
 from NeuralNetwork.SelfOrginizedMap import SOM
 from EvPNNC.EvClassifier import EvPNNC_Class
 import numpy as np # linear algebra
@@ -236,11 +235,8 @@ if __name__ == '__main__':
     
     """
 
-
-dataset = pd.read_csv('storage/dataset/ecg.csv', header=None)
-# runAutoEncoder(epoches, dataset, stopping_patience, generation)
 # Running the autoEncoder with configurations
-# dataset = 'storage/dataset/ecg.csv'
+dataset = 'storage/dataset/output.txt'
 # the epochs are increased according to the increasing factor
 results_iteration = 1
 results_increase_factor = 5
