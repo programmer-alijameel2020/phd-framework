@@ -1,8 +1,6 @@
-import matplotlib
 import pandas as pd
 import numpy as np
 from keras.utils import plot_model
-from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, f1_score, roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
@@ -17,35 +15,6 @@ from Framework.EvaluationMetric import evaluationMetric
 palette = sns.color_palette("rocket_r")
 
 
-def get_clf_eval(y_test, pred=None, pred_proba=None):
-    confusion = confusion_matrix(y_test, pred)
-    accuracy = accuracy_score(y_test, pred)
-    precision = precision_score(y_test, pred)
-    recall = recall_score(y_test, pred)
-    f1 = f1_score(y_test, pred)
-
-    roc_auc = roc_auc_score(y_test, pred_proba)
-    print('confusion matrix')
-    print(confusion)
-
-    # ROC-AUC print
-    print('accuracy: {0:.4f}, precision: {1:.4f}, recall: {2:.4f},\
-    F1: {3:.4f}, AUC:{4:.4f}'.format(accuracy, precision, recall, f1, roc_auc))
-    return confusion
-
-
-def predict(model, data, threshold):
-    reconstructions = model(data)
-    loss = tf.keras.losses.mae(reconstructions, data)
-    return tf.math.less(loss, threshold)
-
-
-def print_stats(predictions, labels):
-    print("Accuracy = {}".format(accuracy_score(labels, predictions)))
-    print("Precision = {}".format(precision_score(labels, predictions)))
-    print("Recall = {}".format(recall_score(labels, predictions)))
-
-
 class Autoencoder(Model):
     def __init__(self):
         super(Autoencoder, self).__init__()
@@ -54,13 +23,17 @@ class Autoencoder(Model):
         encoder moder responsible for encoding the signal into simplified representation and the decoder moder 
         responsible for the reconstruction of the decoder signal 
         """
+        evaluationClass = evaluationMetric()
+
         encoder_model = Sequential()
         encoder_model.add(Dense(140, activation='sigmoid', input_shape=(140, 140)))
         encoder_model.add(Dense(64, activation='relu'))
         encoder_model.add(Dense(32, activation='relu'))
         encoder_model.add(Dense(16, activation='relu'))
         encoder_model.add(Dense(8, activation='relu'))
-
+        encoder_model.compile(loss="categorical_crossentropy", optimizer="adam",
+                              metrics=['accuracy', evaluationClass.f1_m, evaluationClass.precision_m,
+                                       evaluationClass.recall_m])
         self.encoder = encoder_model
 
         decoder_model = Sequential()
@@ -69,8 +42,25 @@ class Autoencoder(Model):
         decoder_model.add(Dense(32, activation='relu'))
         decoder_model.add(Dense(64, activation='relu'))
         decoder_model.add(Dense(140, activation='sigmoid', input_shape=(140, 140)))
-
+        decoder_model.compile(loss="categorical_crossentropy", optimizer="adam",
+                              metrics=['accuracy', evaluationClass.f1_m, evaluationClass.precision_m,
+                                       evaluationClass.recall_m])
         self.decoder = decoder_model
+
+        model = Sequential()
+        model.add(Dense(140, activation='sigmoid', input_shape=(141, 1)))
+        model.add(Dense(64, activation='relu'))
+        model.add(Dense(32, activation='relu'))
+        model.add(Dense(16, activation='relu'))
+        model.add(Dense(8, activation='relu'))
+
+        model.add(Dense(8, activation='relu'))
+        model.add(Dense(16, activation='relu'))
+        model.add(Dense(32, activation='relu'))
+        model.add(Dense(64, activation='relu'))
+        model.add(Dense(140, activation='sigmoid', input_shape=(141, 1)))
+        self.model = model
+
         # Performance metrics
         self.acc_history = []
         self.f1_history = []
@@ -118,7 +108,6 @@ class Autoencoder(Model):
 
     def run_autoEncoder(self, dataset, epochs, batch_size, stopping_patience, generation):
         df = pd.read_csv(dataset, sep='  ', header=None, engine='python')
-        print(df.shape)
         # df = pd.read_csv('storage/dataset/test.txt', sep='  ', header=None, engine='python')
         # print(df.head())
         df.columns
@@ -154,13 +143,11 @@ class Autoencoder(Model):
                                        patience=stopping_patience,
                                        mode='min')
 
-        csv_logger = CSVLogger('results/metrics_' + str(generation) + '.csv', append=True)
-
-        evaluationClass = evaluationMetric()
         # Compiling the model
         model.compile(optimizer='adam',
-                      loss='mae', metrics=['accuracy', evaluationClass.f1_m, evaluationClass.precision_m,
-                                           evaluationClass.recall_m])
+                      loss='mae')
+        csv_logger = CSVLogger('metrics_' + str(generation) + '.csv', append=True)
+
         # Training the model
         history = model.fit(normal_train_data, normal_train_data,
                             epochs=epochs,
@@ -210,16 +197,16 @@ class Autoencoder(Model):
 
         # print("normal_test_data: ", normal_test_data)
         # print("Predictions: ", reconstructions)
-        if (generation >= 0):
-            # Plotting the normal and anomaly losses with the threshold
-            plt.hist(train_loss, bins=50, density=True, label="Normal (train data loss)", alpha=.6, color="green")
-            plt.hist(train_loss_a, bins=50, density=True, label="Anomaly (test data loss)", alpha=.6, color="red")
-            plt.axvline(threshold, color='#000000', linewidth=2, linestyle='dashed',
-                        label='Threshold value: {:0.3f}'.format(threshold))
-            plt.legend(loc='upper right')
-            plt.title("Abnormality detection report for (" + str(epochs) + ") epochs with generation: (" + str(
-                generation) + ")")
-            plt.show()
+
+        # Plotting the normal and anomaly losses with the threshold
+        plt.hist(train_loss, bins=50, density=True, label="Normal (train data loss)", alpha=.6, color="green")
+        plt.hist(train_loss_a, bins=50, density=True, label="Anomaly (test data loss)", alpha=.6, color="red")
+        plt.axvline(threshold, color='r', linewidth=3, linestyle='dashed',
+                    label='Threshold value: {:0.3f}'.format(threshold))
+        plt.legend(loc='upper right')
+        plt.title("Abnormality detection report for (" + str(epochs) + ") epochs with generation number: (" + str(
+            generation) + ")")
+        plt.show()
 
         # Number of correct predictions for Normal test data
         preds = tf.math.less(train_loss, threshold)
@@ -228,50 +215,15 @@ class Autoencoder(Model):
         # Number of correct predictions for Anomaly test data
         preds_a = tf.math.greater(train_loss_a, threshold)
         print("Number of correct predictions for anomaly data: ", tf.math.count_nonzero(preds_a))
-        # print(preds_a.shape)
-        # print(reconstructions_a)
-        if (generation >= 0):
-            plt.plot(reconstructions_a[0], label="predictions for abnormality", alpha=.6,
-                     marker=matplotlib.markers.CARETUPBASE, color="black")
-            plt.plot(anomaly_test_data[0], label="Anomaly test data", alpha=.6, color="red", marker="s")
-            plt.legend(loc='upper left')
-            plt.fill_between(np.arange(140), decoder_out_a[0], anomaly_test_data[0], color='#FFCDD2')
-            # plt.plot(reconstructions_a[0], label="predictions for anomaly data", marker=matplotlib.markers.CARETUPBASE)
-            plt.title("Prediction signal of the AEVAE for (" + str(epochs) + ") epochs with generation (" + str(
-                generation) + ")")
-            plt.show()
+        print(preds_a.shape)
 
         """
-        plt.hist(reconstructions_a[0], bins=50, density=True, label="Predictions for anomaly data", alpha=.6, color="green")
-        plt.hist(anomaly_test_data[0], bins=50, density=True, label="Anomaly test data", alpha=.6, color="red")
-        # plt.plot(reconstructions_a[0], label="predictions for anomaly data", marker=matplotlib.markers.CARETUPBASE)
-        plt.title("Abnormality detection report for (" + str(epochs) + ") epochs")
-        plt.show()
+              # Plotting the normal and anomaly losses with the threshold
+              plt.plot(encoder_out_a[0], label="encoder out")
+              plt.plot(decoder_out_a[0], label="decoder out")
+              plt.title("Abnormality detection report for (" + str(epochs) + ") epochs")
+              plt.show()
         """
-        preds = predict(model, test_data, threshold)
-        print_stats(preds, test_labels)
-        confusion_matrix = get_clf_eval(test_labels, preds, preds)
-        plt.figure(figsize=(8, 6))
-        sns.set(font_scale=2)
-        sns.set_style("white")
-        sns.heatmap(confusion_matrix, cmap='gist_yarg_r', annot=True, fmt='d')
-        plt.show()
-
-        """
-        # Build the models
-        self.encoder.build(input_shape=(None, 140))
-        self.decoder.build(input_shape=(None, 8))
-
-        self.encoder.summary()
-        self.decoder.summary()
-        """
-
-        # plt.hist(preds_a, bins=50, density=True, label="predictions for anomalies", alpha=.6, color="red")
-
-        # Plotting the normal and anomaly losses with the threshold
-
-        # plt.plot(preds, label="predictions for normal data", marker=matplotlib.markers.CARETUPBASE)
-        # plt.plot(preds_a, label="predictions for anomalies",)
 
 
 class EvolutionaryAutoEncoder:

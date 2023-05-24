@@ -354,16 +354,27 @@ class Autoencoder(Model):
         test_loss = tf.keras.losses.mae(reconstructions, anomalous_test_data)
 
         # Training anomalous
-        plt.plot(reconstructions[0], label="predictions for abnormality in the training phase", alpha=.6,
+        plt.figure(facecolor='white')
+        plt.plot(reconstructions[0], label="Reconstructions", alpha=.6,
                  marker=matplotlib.markers.CARETUPBASE, color="black")
-        plt.plot(anomalous_train_data[0], label="Reconstruction test data", alpha=.6, color="red", marker="s")
-        plt.legend(loc='best')
+        plt.plot(anomalous_train_data[0], label="Anomaly test data", alpha=.6, color="red", marker="s")
+        # plt.fill_between(np.arange(140), decoded_imgs[0], anomalous_train_data[0], color='#FFCDD2')
         plt.fill_between(np.arange(140), decoded_imgs[0], anomalous_train_data[0], color='#FFCDD2')
         # plt.plot(reconstructions_a[0], label="predictions for anomaly data", marker=matplotlib.markers.CARETUPBASE)
         plt.title("(Training phase) Reconstructed signal for (" + str(epochs) + ") epochs with generation (" + str(
             generation) + ")")
-        plt.legend(labels=["Input", "Reconstruction", "Error"])
+        # Customize legend background
+        legend = plt.legend(loc='best', frameon=True, labels=["Input", "Reconstruction", "Error"])
+        legend.get_frame().set_facecolor('white')
+        # Set plot background color
+        plt.gca().set_facecolor('white')
+        # Set frame color
+        frame = plt.gca()
+        for spine in frame.spines.values():
+            spine.set_edgecolor('grey')
+        plt.grid()
         plt.show()
+
 
         # Error Between
         plt.plot(reconstructions[0], label="predictions for abnormality in the testing phase", alpha=.6,
@@ -375,6 +386,13 @@ class Autoencoder(Model):
         plt.title("(Testing phase) Reconstructed signal for (" + str(epochs) + ") epochs with generation (" + str(
             generation) + ")")
         plt.legend(labels=["Input", "Reconstruction", "Error"])
+        # Customize legend background
+        legend = plt.legend(loc='best', frameon=True, labels=["Input", "Reconstruction", "Error"])
+        legend.get_frame().set_facecolor('white')
+        plt.gca().set_facecolor('white')
+        frame = plt.gca()
+        for spine in frame.spines.values():
+            spine.set_edgecolor('grey')
         plt.show()
 
         plt.figure(figsize=(12, 8))
@@ -411,7 +429,8 @@ class Autoencoder(Model):
         plt.axvline(x=threshold, color='b', linestyle='--', linewidth=3)
         plt.xlabel("Testing loss")
         plt.ylabel("No of examples")
-        sns.despine()
+        plt.grid()
+        # sns.despine()
         # plt.title("Testing loss for (" + str(epochs) + ") epochs with generation (" + str( generation) + ")")
         plt.show()
 
