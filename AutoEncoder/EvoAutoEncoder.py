@@ -115,7 +115,6 @@ class Autoencoder(Model):
         self.generations = None
         self.autoencoder = None
 
-
     def call(self, x):
         encoded = self.encoder(x)
         decoded = self.decoder(encoded)
@@ -142,8 +141,6 @@ class Autoencoder(Model):
             return modifiedEncoder, modifiedDecoder
         else:
             return encoder_model, decoder_model
-
-
 
     def return_acc_history(self):
         return self.acc_history
@@ -264,9 +261,6 @@ class Autoencoder(Model):
                                        shuffle=True,
                                        callbacks=[early_stopping, csv_logger, tensorboard_callback])
 
-
-
-
         """
         plt.figure(figsize=(10, 8))
         sns.set(font_scale=2)
@@ -320,7 +314,7 @@ class Autoencoder(Model):
         # umap.plot.points(mapper, labels=all_encoded.iloc[:,8], theme='fire')
 
         # umap.plot.connectivity(mapper, show_points=True)
-
+        """"
         plt.figure(figsize=(10, 8))
         sns.set(font_scale=2)
         sns.set_style("white")
@@ -330,12 +324,15 @@ class Autoencoder(Model):
                  size='small', color='black', weight='semibold')
         plt.xlabel("Train loss")
         plt.ylabel("No of examples")
+        plt.title("Training loss data")
         sns.despine()
         plt.show()
+        """
 
         threshold = np.mean(train_loss) + np.std(train_loss)
         print("Threshold: ", threshold)
 
+        """"
         plt.figure(figsize=(12, 8))
         sns.set(font_scale=2)
         sns.set_style("white")
@@ -349,7 +346,9 @@ class Autoencoder(Model):
         plt.xlabel("Train loss")
         plt.ylabel("No of examples")
         sns.despine()
+        plt.title("training loss with threshold")
         plt.show()
+        """
 
         reconstructions = self.autoencoder.predict(anomalous_test_data)
         test_loss = tf.keras.losses.mae(reconstructions, anomalous_test_data)
@@ -361,7 +360,7 @@ class Autoencoder(Model):
         plt.legend(loc='best')
         plt.fill_between(np.arange(140), decoded_imgs[0], anomalous_train_data[0], color='#FFCDD2')
         # plt.plot(reconstructions_a[0], label="predictions for anomaly data", marker=matplotlib.markers.CARETUPBASE)
-        plt.title("Prediction signal of the AEVAE for (" + str(epochs) + ") epochs with generation (" + str(
+        plt.title("(Training phase) Reconstructed signal for (" + str(epochs) + ") epochs with generation (" + str(
             generation) + ")")
         plt.legend(labels=["Input", "Reconstruction", "Error"])
         plt.show()
@@ -373,26 +372,9 @@ class Autoencoder(Model):
         plt.legend(loc='best')
         plt.fill_between(np.arange(140), decoded_imgs[0], anomalous_test_data[0], color='#FFCDD2')
         # plt.plot(reconstructions_a[0], label="predictions for anomaly data", marker=matplotlib.markers.CARETUPBASE)
-        plt.title("Prediction signal of the AEVAE for (" + str(epochs) + ") epochs with generation (" + str(
+        plt.title("(Testing phase) Reconstructed signal for (" + str(epochs) + ") epochs with generation (" + str(
             generation) + ")")
         plt.legend(labels=["Input", "Reconstruction", "Error"])
-        plt.show()
-
-        plt.figure(figsize=(12, 8))
-        sns.set(font_scale=2)
-        sns.set_style("white")
-        sns.histplot(test_loss, bins=50, kde=True, color='red', linewidth=3)
-        plt.axvline(x=np.mean(test_loss), color='g', linestyle='--', linewidth=3)
-        plt.text(np.mean(test_loss), 30, "Anomaly Mean", horizontalalignment='center',
-                 size='small', color='black', weight='semibold')
-        plt.text(threshold, 50, "Threshold", horizontalalignment='center',
-                 size='small', color='Blue', weight='semibold')
-        plt.axvline(x=threshold, color='b', linestyle='--', linewidth=3)
-        plt.xlabel("loss")
-        plt.ylabel("No of examples")
-        sns.despine()
-        plt.title("Testing loss the AEVAE for (" + str(epochs) + ") epochs with generation (" + str(
-            generation) + ")")
         plt.show()
 
         plt.figure(figsize=(12, 8))
@@ -411,11 +393,26 @@ class Autoencoder(Model):
         plt.text(np.mean(test_loss), 200, "Anomaly Mean", horizontalalignment='center',
                  size='small', color='black', weight='semibold')
         plt.axvline(x=threshold, color='b', linestyle='--', linewidth=3)
-        plt.xlabel("loss")
+        plt.xlabel("Training loss")
         plt.ylabel("No of examples")
         sns.despine()
-        plt.title("Training loss the AEVAE for (" + str(epochs) + ") epochs with generation (" + str(
-            generation) + ")")
+        # plt.title("Training loss the AEVAE for (" + str(epochs) + ") epochs with generation (" + str(generation) + ")", loc='best')
+        plt.show()
+
+        plt.figure(figsize=(12, 8))
+        sns.set(font_scale=2)
+        sns.set_style("white")
+        sns.histplot(test_loss, bins=50, kde=True, color='red', linewidth=3)
+        plt.axvline(x=np.mean(test_loss), color='g', linestyle='--', linewidth=3)
+        plt.text(np.mean(test_loss), 30, "Anomaly Mean", horizontalalignment='center',
+                 size='small', color='black', weight='semibold')
+        plt.text(threshold, 50, "Threshold", horizontalalignment='center',
+                 size='small', color='Blue', weight='semibold')
+        plt.axvline(x=threshold, color='b', linestyle='--', linewidth=3)
+        plt.xlabel("Testing loss")
+        plt.ylabel("No of examples")
+        sns.despine()
+        # plt.title("Testing loss for (" + str(epochs) + ") epochs with generation (" + str( generation) + ")")
         plt.show()
 
         preds = predict(self.autoencoder, test_data, threshold)
@@ -426,6 +423,7 @@ class Autoencoder(Model):
         sns.set(font_scale=2)
         sns.set_style("white")
         sns.heatmap(confusion_matrix, cmap='gist_yarg_r', annot=True, fmt='d')
+        plt.title("Confusion matrix for generation (" + str(generation) + ")")
         plt.show()
 
         # Build the models

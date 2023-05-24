@@ -45,6 +45,7 @@ def print_stats(predictions, labels):
     print("Precision = {}".format(precision_score(labels, predictions)))
     print("Recall = {}".format(recall_score(labels, predictions)))
 
+
 class Autoencoder(Model):
     def __init__(self):
         super(Autoencoder, self).__init__()
@@ -53,17 +54,13 @@ class Autoencoder(Model):
         encoder moder responsible for encoding the signal into simplified representation and the decoder moder 
         responsible for the reconstruction of the decoder signal 
         """
-        evaluationClass = evaluationMetric()
-
         encoder_model = Sequential()
         encoder_model.add(Dense(140, activation='sigmoid', input_shape=(140, 140)))
         encoder_model.add(Dense(64, activation='relu'))
         encoder_model.add(Dense(32, activation='relu'))
         encoder_model.add(Dense(16, activation='relu'))
         encoder_model.add(Dense(8, activation='relu'))
-        encoder_model.compile(loss="categorical_crossentropy", optimizer="adam",
-                              metrics=['accuracy', evaluationClass.f1_m, evaluationClass.precision_m,
-                                       evaluationClass.recall_m])
+
         self.encoder = encoder_model
 
         decoder_model = Sequential()
@@ -72,9 +69,7 @@ class Autoencoder(Model):
         decoder_model.add(Dense(32, activation='relu'))
         decoder_model.add(Dense(64, activation='relu'))
         decoder_model.add(Dense(140, activation='sigmoid', input_shape=(140, 140)))
-        decoder_model.compile(loss="categorical_crossentropy", optimizer="adam",
-                              metrics=['accuracy', evaluationClass.f1_m, evaluationClass.precision_m,
-                                       evaluationClass.recall_m])
+
         self.decoder = decoder_model
         # Performance metrics
         self.acc_history = []
@@ -120,7 +115,6 @@ class Autoencoder(Model):
         self.rec_history.append(recall)
         self.loss_history.append(loss)
         return acc
-
 
     def run_autoEncoder(self, dataset, epochs, batch_size, stopping_patience, generation):
         df = pd.read_csv(dataset, sep='  ', header=None, engine='python')
@@ -227,7 +221,6 @@ class Autoencoder(Model):
                 generation) + ")")
             plt.show()
 
-
         # Number of correct predictions for Normal test data
         preds = tf.math.less(train_loss, threshold)
 
@@ -264,12 +257,14 @@ class Autoencoder(Model):
         sns.heatmap(confusion_matrix, cmap='gist_yarg_r', annot=True, fmt='d')
         plt.show()
 
+        """
         # Build the models
         self.encoder.build(input_shape=(None, 140))
         self.decoder.build(input_shape=(None, 8))
 
         self.encoder.summary()
         self.decoder.summary()
+        """
 
         # plt.hist(preds_a, bins=50, density=True, label="predictions for anomalies", alpha=.6, color="red")
 
