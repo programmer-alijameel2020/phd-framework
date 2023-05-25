@@ -364,7 +364,7 @@ class Autoencoder(Model):
         reconstructions = self.autoencoder.predict(anomalous_test_data)
         test_loss = tf.keras.losses.mae(reconstructions, anomalous_test_data)
 
-        if generation >= 0:
+        if generation > 8:
             # Training anomalous
             plt.figure(facecolor='white')
             plt.plot(reconstructions[0], label="Reconstructions", alpha=.6,
@@ -467,8 +467,8 @@ class Autoencoder(Model):
             df = pd.DataFrame(self.metricsArray)
             df.to_csv('results/model_metrics_' + str(generation) + '.csv', index=False)
 
-        plot_model(self.encoder, to_file='model_plot/encoder_model_plot_'+str(generation)+'.pdf', show_shapes=True, show_layer_names=True, dpi=96)
-        plot_model(self.decoder, to_file='model_plot/decoder_model_plot_'+str(generation)+'.pdf', show_shapes=True, show_layer_names=True, dpi=96)
+        # plot_model(self.encoder, to_file='model_plot/encoder_model_plot_'+str(generation)+'.pdf', show_shapes=True, show_layer_names=True, dpi=96)
+        # plot_model(self.decoder, to_file='model_plot/decoder_model_plot_'+str(generation)+'.pdf', show_shapes=True, show_layer_names=True, dpi=96)
 
 
 
