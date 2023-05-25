@@ -1,6 +1,8 @@
+import keras.metrics
 import matplotlib
 import pandas as pd
 import numpy as np
+import sklearn.metrics
 import umap
 from keras.utils import plot_model
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
@@ -15,7 +17,7 @@ from keras.layers import Dense
 from keras.utils import plot_model
 
 from AutoEncoder.NeuralNetwork import initializeLayerArray, modelConstruction
-from Framework.EvaluationMetric import evaluationMetric
+from AutoEncoder.EvaluationMetric import evaluationMetric
 
 palette = sns.color_palette("rocket_r")
 
@@ -34,7 +36,8 @@ def get_clf_eval(y_test, pred=None, pred_proba=None):
     # ROC-AUC print
     print('accuracy: {0:.4f}, precision: {1:.4f}, recall: {2:.4f},\
     F1: {3:.4f}, AUC:{4:.4f}'.format(accuracy, precision, recall, f1, roc_auc))
-    return confusion
+    metricArray = [accuracy, precision, recall, f1, roc_auc]
+    return confusion, metricArray
 
 
 def predict(model, data, threshold):
@@ -114,6 +117,8 @@ class Autoencoder(Model):
         self.modelPool = []
         self.generations = None
         self.autoencoder = None
+        self.metricsArray = []
+
 
     def call(self, x):
         encoded = self.encoder(x)
@@ -122,13 +127,15 @@ class Autoencoder(Model):
 
     def layerStackInit(self):
         encoder_model = Sequential()
-        encoder_model.add(Dense(140, activation='relu'))
+        encoder_model.add(Dense(140, activation='relu', input_shape=(140, )))
         encoder_model.add(Dense(64, activation='relu'))
         encoder_model.add(Dense(32, activation='relu'))
         encoder_model.add(Dense(16, activation='relu'))
+        encoder_model.add(Dense(32, activation='relu'))
         encoder_model.add(Dense(8, activation='relu'))
 
         decoder_model = Sequential()
+        decoder_model.add(Dense(32, activation='relu'))
         decoder_model.add(Dense(16, activation='relu'))
         decoder_model.add(Dense(32, activation='relu'))
         decoder_model.add(Dense(64, activation='relu'))
@@ -146,18 +153,16 @@ class Autoencoder(Model):
         return self.acc_history
 
     def get_layer_weight(self, i):
-        return self.encoder.layers[i].get_weights(), self.decoder.layers[i].get_weights()
+        return self.encoder.layers[i].get_weights()
 
     def set_layer_weight(self, i, weight):
         self.encoder.layers[i].set_weights(weight)
-        self.decoder.layers[i].set_weights(weight)
 
     def load_layer_weights(self, weights):
         self.encoder.set_weights(weights)
-        self.decoder.set_weights(weights)
 
     def give_weights(self):
-        return self.encoder.get_weights(), self.decoder.get_weights()
+        return self.encoder.get_weights()
 
     def weight_len(self):
         i = 0
@@ -169,12 +174,13 @@ class Autoencoder(Model):
         self.encoder.summary()
 
     def test(self):
-        loss, acc, f1_score, precision, recall = self.encoder.evaluate(self.X_test, self.y_test)
+        loss, acc, f1_score, precision, recall, roc_auc_score = self.model.evaluate(self.X_test, self.y_test)
         self.acc_history.append(acc)
         self.f1_history.append(f1_score)
         self.precision_history.append(precision)
         self.rec_history.append(recall)
         self.loss_history.append(loss)
+        self.roc_auc_score.append(roc_auc_score)
         return acc
 
     def run_autoEncoder(self, dataset, epochs, batch_size, stopping_patience, generation):
@@ -242,6 +248,9 @@ class Autoencoder(Model):
 
         self.autoencoder = Autoencoder()
 
+        # get the measures
+        auc_metric = tf.keras.metrics.AUC(curve='ROC', from_logits=True)
+
         # Compiling the model
         self.autoencoder.compile(optimizer='adam', loss='mae')
 
@@ -253,6 +262,8 @@ class Autoencoder(Model):
         csv_logger = CSVLogger('results/metrics_' + str(generation) + '.csv', append=True)
 
         tensorboard_callback = TensorBoard(log_dir='logs')
+
+
 
         history = self.autoencoder.fit(normal_train_data, normal_train_data,
                                        epochs=epochs,
@@ -353,105 +364,113 @@ class Autoencoder(Model):
         reconstructions = self.autoencoder.predict(anomalous_test_data)
         test_loss = tf.keras.losses.mae(reconstructions, anomalous_test_data)
 
-        # Training anomalous
-        plt.figure(facecolor='white')
-        plt.plot(reconstructions[0], label="Reconstructions", alpha=.6,
-                 marker=matplotlib.markers.CARETUPBASE, color="black")
-        plt.plot(anomalous_train_data[0], label="Anomaly test data", alpha=.6, color="red", marker="s")
-        # plt.fill_between(np.arange(140), decoded_imgs[0], anomalous_train_data[0], color='#FFCDD2')
-        plt.fill_between(np.arange(140), decoded_imgs[0], anomalous_train_data[0], color='#FFCDD2')
-        # plt.plot(reconstructions_a[0], label="predictions for anomaly data", marker=matplotlib.markers.CARETUPBASE)
-        plt.title("(Training phase) Reconstructed signal for (" + str(epochs) + ") epochs with generation (" + str(
-            generation) + ")")
-        # Customize legend background
-        legend = plt.legend(loc='best', frameon=True, labels=["Input", "Reconstruction", "Error"])
-        legend.get_frame().set_facecolor('white')
-        # Set plot background color
-        plt.gca().set_facecolor('white')
-        # Set frame color
-        frame = plt.gca()
-        for spine in frame.spines.values():
-            spine.set_edgecolor('grey')
-        plt.grid()
-        plt.show()
+        if generation >= 0:
+            # Training anomalous
+            plt.figure(facecolor='white')
+            plt.plot(reconstructions[0], label="Reconstructions", alpha=.6,
+                     marker=matplotlib.markers.CARETUPBASE, color="black")
+            plt.plot(anomalous_train_data[0], label="Anomaly test data", alpha=.6, color="red", marker="s")
+            # plt.fill_between(np.arange(140), decoded_imgs[0], anomalous_train_data[0], color='#FFCDD2')
+            plt.fill_between(np.arange(140), decoded_imgs[0], anomalous_train_data[0], color='#FFCDD2')
+            # plt.plot(reconstructions_a[0], label="predictions for anomaly data", marker=matplotlib.markers.CARETUPBASE)
+            plt.title("(Training phase) Reconstructed signal for (" + str(epochs) + ") epochs with generation (" + str(
+                generation) + ")")
+            # Customize legend background
+            legend = plt.legend(loc='best', frameon=True, labels=["Input", "Reconstruction", "Error"])
+            legend.get_frame().set_facecolor('white')
+            # Set plot background color
+            plt.gca().set_facecolor('white')
+            # Set frame color
+            frame = plt.gca()
+            for spine in frame.spines.values():
+                spine.set_edgecolor('grey')
+            plt.grid()
+            plt.show()
+
+            # Error Between
+            plt.plot(reconstructions[0], label="predictions for abnormality in the testing phase", alpha=.6,
+                     marker=matplotlib.markers.CARETUPBASE, color="black")
+            plt.plot(anomalous_test_data[0], label="Reconstruction test data", alpha=.6, color="red", marker="s")
+            plt.legend(loc='best')
+            plt.fill_between(np.arange(140), decoded_imgs[0], anomalous_test_data[0], color='#FFCDD2')
+            # plt.plot(reconstructions_a[0], label="predictions for anomaly data", marker=matplotlib.markers.CARETUPBASE)
+            plt.title("(Testing phase) Reconstructed signal for (" + str(epochs) + ") epochs with generation (" + str(
+                generation) + ")")
+            plt.legend(labels=["Input", "Reconstruction", "Error"])
+            # Customize legend background
+            legend = plt.legend(loc='best', frameon=True, labels=["Input", "Reconstruction", "Error"])
+            legend.get_frame().set_facecolor('white')
+            plt.gca().set_facecolor('white')
+            frame = plt.gca()
+            for spine in frame.spines.values():
+                spine.set_edgecolor('grey')
+            plt.show()
+
+            plt.figure(figsize=(12, 8))
+            sns.set(font_scale=2)
+            sns.set_style("white")
+            sns.histplot(train_loss, bins=50, kde=True, color='grey', linewidth=3)
+            plt.axvline(x=np.mean(train_loss), color='g', linestyle='--', linewidth=3)
+            plt.text(np.mean(train_loss), 200, "Normal Mean", horizontalalignment='center',
+                     size='small', color='black', weight='semibold')
+            plt.axvline(x=threshold, color='b', linestyle='--', linewidth=3)
+            plt.text(threshold, 250, "Threshold", horizontalalignment='center',
+                     size='small', color='Blue', weight='semibold')
+
+            sns.histplot(test_loss, bins=50, kde=True, color='red', linewidth=3)
+            plt.axvline(x=np.mean(test_loss), color='g', linestyle='--', linewidth=3)
+            plt.text(np.mean(test_loss), 200, "Anomaly Mean", horizontalalignment='center',
+                     size='small', color='black', weight='semibold')
+            plt.axvline(x=threshold, color='b', linestyle='--', linewidth=3)
+            plt.xlabel("Training loss")
+            plt.ylabel("No of examples")
+            sns.despine()
+            # plt.title("Training loss the AEVAE for (" + str(epochs) + ") epochs with generation (" + str(generation) + ")", loc='best')
+            plt.show()
+
+            plt.figure(figsize=(12, 8))
+            sns.set(font_scale=2)
+            sns.set_style("white")
+            sns.histplot(test_loss, bins=50, kde=True, color='red', linewidth=3)
+            plt.axvline(x=np.mean(test_loss), color='g', linestyle='--', linewidth=3)
+            plt.text(np.mean(test_loss), 30, "Anomaly Mean", horizontalalignment='center',
+                     size='small', color='black', weight='semibold')
+            plt.text(threshold, 50, "Threshold", horizontalalignment='center',
+                     size='small', color='Blue', weight='semibold')
+            plt.axvline(x=threshold, color='b', linestyle='--', linewidth=3)
+            plt.xlabel("Testing loss")
+            plt.ylabel("No of examples")
+            plt.grid()
+            # sns.despine()
+            # plt.title("Testing loss for (" + str(epochs) + ") epochs with generation (" + str( generation) + ")")
+            plt.show()
+
+            preds = predict(self.autoencoder, test_data, threshold)
+            print_stats(preds, test_labels)
+
+            confusion_matrix, metricArray = get_clf_eval(test_labels, preds, preds)
+            self.metricsArray.append(metricArray)
+            plt.figure(figsize=(8, 6))
+            sns.set(font_scale=2)
+            sns.set_style("white")
+            sns.heatmap(confusion_matrix, cmap='gist_yarg_r', annot=True, fmt='d')
+            plt.title("Confusion matrix for generation (" + str(generation) + ")")
+            plt.show()
+
+            # Build the models
+            self.encoder.build(input_shape=(None, 140))
+            self.decoder.build(input_shape=(None, 8))
+
+            self.encoder.summary()
+            self.decoder.summary()
+
+            df = pd.DataFrame(self.metricsArray)
+            df.to_csv('results/model_metrics_' + str(generation) + '.csv', index=False)
+
+        plot_model(self.encoder, to_file='model_plot/encoder_model_plot_'+str(generation)+'.pdf', show_shapes=True, show_layer_names=True, dpi=96)
+        plot_model(self.decoder, to_file='model_plot/decoder_model_plot_'+str(generation)+'.pdf', show_shapes=True, show_layer_names=True, dpi=96)
 
 
-        # Error Between
-        plt.plot(reconstructions[0], label="predictions for abnormality in the testing phase", alpha=.6,
-                 marker=matplotlib.markers.CARETUPBASE, color="black")
-        plt.plot(anomalous_test_data[0], label="Reconstruction test data", alpha=.6, color="red", marker="s")
-        plt.legend(loc='best')
-        plt.fill_between(np.arange(140), decoded_imgs[0], anomalous_test_data[0], color='#FFCDD2')
-        # plt.plot(reconstructions_a[0], label="predictions for anomaly data", marker=matplotlib.markers.CARETUPBASE)
-        plt.title("(Testing phase) Reconstructed signal for (" + str(epochs) + ") epochs with generation (" + str(
-            generation) + ")")
-        plt.legend(labels=["Input", "Reconstruction", "Error"])
-        # Customize legend background
-        legend = plt.legend(loc='best', frameon=True, labels=["Input", "Reconstruction", "Error"])
-        legend.get_frame().set_facecolor('white')
-        plt.gca().set_facecolor('white')
-        frame = plt.gca()
-        for spine in frame.spines.values():
-            spine.set_edgecolor('grey')
-        plt.show()
-
-        plt.figure(figsize=(12, 8))
-        sns.set(font_scale=2)
-        sns.set_style("white")
-        sns.histplot(train_loss, bins=50, kde=True, color='grey', linewidth=3)
-        plt.axvline(x=np.mean(train_loss), color='g', linestyle='--', linewidth=3)
-        plt.text(np.mean(train_loss), 200, "Normal Mean", horizontalalignment='center',
-                 size='small', color='black', weight='semibold')
-        plt.axvline(x=threshold, color='b', linestyle='--', linewidth=3)
-        plt.text(threshold, 250, "Threshold", horizontalalignment='center',
-                 size='small', color='Blue', weight='semibold')
-
-        sns.histplot(test_loss, bins=50, kde=True, color='red', linewidth=3)
-        plt.axvline(x=np.mean(test_loss), color='g', linestyle='--', linewidth=3)
-        plt.text(np.mean(test_loss), 200, "Anomaly Mean", horizontalalignment='center',
-                 size='small', color='black', weight='semibold')
-        plt.axvline(x=threshold, color='b', linestyle='--', linewidth=3)
-        plt.xlabel("Training loss")
-        plt.ylabel("No of examples")
-        sns.despine()
-        # plt.title("Training loss the AEVAE for (" + str(epochs) + ") epochs with generation (" + str(generation) + ")", loc='best')
-        plt.show()
-
-        plt.figure(figsize=(12, 8))
-        sns.set(font_scale=2)
-        sns.set_style("white")
-        sns.histplot(test_loss, bins=50, kde=True, color='red', linewidth=3)
-        plt.axvline(x=np.mean(test_loss), color='g', linestyle='--', linewidth=3)
-        plt.text(np.mean(test_loss), 30, "Anomaly Mean", horizontalalignment='center',
-                 size='small', color='black', weight='semibold')
-        plt.text(threshold, 50, "Threshold", horizontalalignment='center',
-                 size='small', color='Blue', weight='semibold')
-        plt.axvline(x=threshold, color='b', linestyle='--', linewidth=3)
-        plt.xlabel("Testing loss")
-        plt.ylabel("No of examples")
-        plt.grid()
-        # sns.despine()
-        # plt.title("Testing loss for (" + str(epochs) + ") epochs with generation (" + str( generation) + ")")
-        plt.show()
-
-        preds = predict(self.autoencoder, test_data, threshold)
-        print_stats(preds, test_labels)
-
-        confusion_matrix = get_clf_eval(test_labels, preds, preds)
-        plt.figure(figsize=(8, 6))
-        sns.set(font_scale=2)
-        sns.set_style("white")
-        sns.heatmap(confusion_matrix, cmap='gist_yarg_r', annot=True, fmt='d')
-        plt.title("Confusion matrix for generation (" + str(generation) + ")")
-        plt.show()
-
-        # Build the models
-        self.encoder.build(input_shape=(None, 140))
-        self.decoder.build(input_shape=(None, 8))
-
-        self.encoder.summary()
-        self.decoder.summary()
-        plot_model(self.encoder, to_file='model_plot.png', show_shapes=True, show_layer_names=True, dpi=96)
 
     def modifyNetStructure(self):
         self.adaptiveLayerStatus = True
@@ -563,6 +582,12 @@ class EvolutionaryAutoEncoder:
             for j in range(len(self.children_population_weights)):
                 self.population[i].load_layer_weights(self.children_population_weights[j])
 
+    def predict(self):
+        for member in self.population:
+            acc = member.test()
+            self.acc.append(acc)
+            # logging.info("Losses: {}".format(loss))
+
     # Modifies the AE structure
     def modification(self):
         for member in self.population:
@@ -575,7 +600,7 @@ class EvolutionaryAutoEncoder:
             self.runEncoderEvolution(episode)
             if episode != self.generations - 1:
                 self.normalize()
-                # self.reproduction()
+                self.reproduction()
                 # self.mutate()
                 self.modification()
 
