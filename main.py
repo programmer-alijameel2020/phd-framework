@@ -251,7 +251,7 @@ stopping_patience = 3
 # initialize the evolutionary algorithm parameters
 population_size = 2
 mutation_rate = 0.05
-NO_generations = 25
+NO_generations = 10
 
 EV_AE = EvolutionaryAutoEncoder(model_iteration=epochs
                                 , population_size=population_size, mutation_rate=mutation_rate,
@@ -259,3 +259,5 @@ EV_AE = EvolutionaryAutoEncoder(model_iteration=epochs
                                 batch_size=batch_size, stopping_patience=stopping_patience)
 EV_AE.create_population()
 EV_AE.run_evolution()
+
+

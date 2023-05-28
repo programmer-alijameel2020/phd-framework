@@ -1,3 +1,5 @@
+import csv
+
 import keras.metrics
 import matplotlib
 import pandas as pd
@@ -15,6 +17,7 @@ import seaborn as sns
 from keras.models import Sequential, Model
 from keras.layers import Dense
 from keras.utils import plot_model
+from tensorflow import keras
 
 from AutoEncoder.NeuralNetwork import initializeLayerArray, modelConstruction
 from AutoEncoder.EvaluationMetric import evaluationMetric
@@ -250,9 +253,10 @@ class Autoencoder(Model):
 
         # get the measures
         auc_metric = tf.keras.metrics.AUC(curve='ROC', from_logits=True)
-
+        evaluationClass = evaluationMetric()
         # Compiling the model
-        self.autoencoder.compile(optimizer='adam', loss='mae')
+        self.autoencoder.compile(optimizer='adam',
+                      loss='binary_crossentropy')
 
         # creating an early_stopping
         early_stopping = EarlyStopping(monitor='val_loss',
@@ -262,8 +266,6 @@ class Autoencoder(Model):
         csv_logger = CSVLogger('results/metrics_' + str(generation) + '.csv', append=True)
 
         tensorboard_callback = TensorBoard(log_dir='logs')
-
-
 
         history = self.autoencoder.fit(normal_train_data, normal_train_data,
                                        epochs=epochs,
@@ -364,7 +366,8 @@ class Autoencoder(Model):
         reconstructions = self.autoencoder.predict(anomalous_test_data)
         test_loss = tf.keras.losses.mae(reconstructions, anomalous_test_data)
 
-        if generation > 8:
+        if generation >= 0:
+            """""
             # Training anomalous
             plt.figure(facecolor='white')
             plt.plot(reconstructions[0], label="Reconstructions", alpha=.6,
@@ -373,7 +376,7 @@ class Autoencoder(Model):
             # plt.fill_between(np.arange(140), decoded_imgs[0], anomalous_train_data[0], color='#FFCDD2')
             plt.fill_between(np.arange(140), decoded_imgs[0], anomalous_train_data[0], color='#FFCDD2')
             # plt.plot(reconstructions_a[0], label="predictions for anomaly data", marker=matplotlib.markers.CARETUPBASE)
-            plt.title("(Training phase) Reconstructed signal for (" + str(epochs) + ") epochs with generation (" + str(
+            plt.title("(Training phase) Reconstructed signal in generation (" + str(
                 generation) + ")")
             # Customize legend background
             legend = plt.legend(loc='best', frameon=True, labels=["Input", "Reconstruction", "Error"])
@@ -386,7 +389,9 @@ class Autoencoder(Model):
                 spine.set_edgecolor('grey')
             plt.grid()
             plt.show()
-
+            
+            """
+            """""
             # Error Between
             plt.plot(reconstructions[0], label="predictions for abnormality in the testing phase", alpha=.6,
                      marker=matplotlib.markers.CARETUPBASE, color="black")
@@ -394,8 +399,7 @@ class Autoencoder(Model):
             plt.legend(loc='best')
             plt.fill_between(np.arange(140), decoded_imgs[0], anomalous_test_data[0], color='#FFCDD2')
             # plt.plot(reconstructions_a[0], label="predictions for anomaly data", marker=matplotlib.markers.CARETUPBASE)
-            plt.title("(Testing phase) Reconstructed signal for (" + str(epochs) + ") epochs with generation (" + str(
-                generation) + ")")
+            plt.title("(Testing phase) Reconstructed signal in generation (" + str(generation) + ")", fontdict={'fontsize': 12})
             plt.legend(labels=["Input", "Reconstruction", "Error"])
             # Customize legend background
             legend = plt.legend(loc='best', frameon=True, labels=["Input", "Reconstruction", "Error"])
@@ -406,6 +410,7 @@ class Autoencoder(Model):
                 spine.set_edgecolor('grey')
             plt.show()
 
+            
             plt.figure(figsize=(12, 8))
             sns.set(font_scale=2)
             sns.set_style("white")
@@ -444,18 +449,23 @@ class Autoencoder(Model):
             # sns.despine()
             # plt.title("Testing loss for (" + str(epochs) + ") epochs with generation (" + str( generation) + ")")
             plt.show()
-
+            
+            """
             preds = predict(self.autoencoder, test_data, threshold)
             print_stats(preds, test_labels)
 
-            confusion_matrix, metricArray = get_clf_eval(test_labels, preds, preds)
-            self.metricsArray.append(metricArray)
+            """
+          
             plt.figure(figsize=(8, 6))
             sns.set(font_scale=2)
             sns.set_style("white")
             sns.heatmap(confusion_matrix, cmap='gist_yarg_r', annot=True, fmt='d')
             plt.title("Confusion matrix for generation (" + str(generation) + ")")
             plt.show()
+            """
+
+            confusion_matrix, performance = get_clf_eval(test_labels, preds, preds)
+
 
             # Build the models
             self.encoder.build(input_shape=(None, 140))
@@ -464,11 +474,18 @@ class Autoencoder(Model):
             self.encoder.summary()
             self.decoder.summary()
 
-            df = pd.DataFrame(self.metricsArray)
-            df.to_csv('results/model_metrics_' + str(generation) + '.csv', index=False)
+            df = pd.DataFrame(performance)
 
-        # plot_model(self.encoder, to_file='model_plot/encoder_model_plot_'+str(generation)+'.pdf', show_shapes=True, show_layer_names=True, dpi=96)
-        # plot_model(self.decoder, to_file='model_plot/decoder_model_plot_'+str(generation)+'.pdf', show_shapes=True, show_layer_names=True, dpi=96)
+            with open('results/model_metrics.csv', 'a', newline='') as file:
+                csv_writer = csv.writer(file)
+                # Write the new rows of data
+                csv_writer.writerow(performance)
+
+
+            # df.to_csv('results/model_metrics_' + str(generation) + '.csv', index=False)
+
+            plot_model(self.encoder, to_file='model_plot/encoder_model_plot_'+str(generation)+'_e.pdf', show_shapes=True, show_layer_names=True, dpi=96)
+            plot_model(self.decoder, to_file='model_plot/decoder_model_plot_'+str(generation)+'_e.pdf', show_shapes=True, show_layer_names=True, dpi=96)
 
 
 
