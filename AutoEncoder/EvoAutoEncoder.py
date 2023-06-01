@@ -15,7 +15,7 @@ import tensorflow as tf
 from keras.callbacks import EarlyStopping, CSVLogger, TensorBoard
 import seaborn as sns
 from keras.models import Sequential, Model
-from keras.layers import Dense
+from keras.layers import Dense, LeakyReLU
 from keras.utils import plot_model
 from tensorflow import keras
 
@@ -131,6 +131,9 @@ class Autoencoder(Model):
     def layerStackInit(self):
         encoder_model = Sequential()
         encoder_model.add(Dense(140, activation='relu', input_shape=(140, )))
+        # now add a ReLU layer explicitly:
+        encoder_model.add(LeakyReLU(alpha=0.05))
+
         encoder_model.add(Dense(64, activation='relu'))
         encoder_model.add(Dense(32, activation='relu'))
         encoder_model.add(Dense(16, activation='relu'))
@@ -139,9 +142,12 @@ class Autoencoder(Model):
 
         decoder_model = Sequential()
         decoder_model.add(Dense(32, activation='relu'))
+
         decoder_model.add(Dense(16, activation='relu'))
         decoder_model.add(Dense(32, activation='relu'))
         decoder_model.add(Dense(64, activation='relu'))
+        # now add a ReLU layer explicitly:
+        encoder_model.add(LeakyReLU(alpha=0.05))
         decoder_model.add(Dense(140, activation='sigmoid'))
 
         print("Adaption state:", self.adaptiveLayerStatus)
@@ -391,7 +397,7 @@ class Autoencoder(Model):
             plt.show()
             
             """
-            """""
+
             # Error Between
             plt.plot(reconstructions[0], label="predictions for abnormality in the testing phase", alpha=.6,
                      marker=matplotlib.markers.CARETUPBASE, color="black")
@@ -410,7 +416,7 @@ class Autoencoder(Model):
                 spine.set_edgecolor('grey')
             plt.show()
 
-            
+            """""
             plt.figure(figsize=(12, 8))
             sns.set(font_scale=2)
             sns.set_style("white")
@@ -432,7 +438,7 @@ class Autoencoder(Model):
             sns.despine()
             # plt.title("Training loss the AEVAE for (" + str(epochs) + ") epochs with generation (" + str(generation) + ")", loc='best')
             plt.show()
-
+            
             plt.figure(figsize=(12, 8))
             sns.set(font_scale=2)
             sns.set_style("white")
@@ -449,8 +455,8 @@ class Autoencoder(Model):
             # sns.despine()
             # plt.title("Testing loss for (" + str(epochs) + ") epochs with generation (" + str( generation) + ")")
             plt.show()
-            
             """
+
             preds = predict(self.autoencoder, test_data, threshold)
             print_stats(preds, test_labels)
 
